@@ -113,7 +113,7 @@ function main() {
 
         echo
         echo "Time machine is recharging..."
-        sleep $(( $RANDOM % 11 + 10 ))
+        sleep $(( $RANDOM % 11 + 10 ))m
         mplayer -really-quiet ~/in/fume/signal.flac &
         echo "$fg[red]BZZZ$reset_color."
         echo -e '\a'
