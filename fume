@@ -1,0 +1,123 @@
+#!/bin/zsh
+# Copyright muflax <mail@muflax.com>, 2010
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+# read in aliases
+source ~/.zshrc
+
+function show_todo() {
+    echo "  -> Incoming transmission! <-"
+    TODOTXT_VERBOSE=0 now list
+    echo "--"
+    ashuku add
+}
+
+function question_me() {
+    show_todo
+    echo 
+    echo "What do you want to do next?"
+    echo -n "$fg[green](s)${reset_color}uggest "
+    echo -n "$fg[green](r)${reset_color}efresh "
+    echo -n "$fg[green](c)${reset_color}hoose "
+    echo -n "$fg[red](q)${reset_color}quit "
+    echo -n "(^C to keep on working) "
+    echo
+    read -sk1 input
+    case $input in
+        r)
+            clear
+            question_me
+            ;;
+        s)
+            suggest
+            ;;
+        p)
+            choose prolong
+            ;;
+        c)
+            choose
+            ;;
+        q)
+            exit 0;
+            ;;
+    esac
+}
+
+function suggest() {
+    # pick items until a suggestion works
+    while true; do
+        suggestion=$(~/in/fume/sume)
+        if [[ -z $suggestion ]]; then
+            echo "Nothing to do. Sorry."
+            return
+        fi
+
+        echo "What about '$(echo $suggestion | ~/in/gtd/pre_filter)'?"
+        echo -n "$fg[green](s)${reset_color}ure "
+        echo -n "$fg[red](n)${reset_color}ope "
+        echo
+        read -sk1 input
+        id=$(id_of $suggestion)
+        case $input in
+            s)
+                work_on $id
+                return
+                ;;
+            n)
+                procrastinate_on $id
+                continue
+                ;;
+            *)
+                echo "Hu?"
+        esac
+    done
+}
+
+function id_of() {
+    item=$1
+    id=$(/bin/grep -nF "$item" ~/txt/todo/todo.txt | /bin/grep -oP "^\d+")
+    echo $id
+}
+    
+
+function choose() {
+    echo "What item do you want?"
+    read item
+    case $item in
+        [0-9]*)
+            work_on $item
+            ;;
+        *)
+            echo "Hu?"
+    esac
+}
+
+function work_on() {
+    id=$1
+    item=$(now list_item $id)
+    echo "working on '$item'"
+    echo "$(date +%s) $item" >> ~/txt/todo/fume.log
+}
+
+function procrastinate_on() {
+    id=$1
+    echo "Transmission error detected. Requesting retry..."
+    TODOTXT_VERBOSE=0 now append $id @broken
+    TODOTXT_VERBOSE=0 now pri $id D
+}
+
+function main() {
+    trap 'echo "Time machine boggled, recalibrating..."' INT
+    while true; do
+        question_me
+
+        echo
+        echo "Time machine is recharging..."
+        sleep $(( $RANDOM % 11 + 10 ))
+        mplayer -really-quiet ~/in/fume/signal.flac &
+        echo "$fg[red]BZZZ$reset_color."
+        echo -e '\a'
+    done
+}
+
+main
