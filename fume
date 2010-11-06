@@ -13,34 +13,38 @@ function show_todo() {
 }
 
 function question_me() {
-    show_todo
-    echo 
-    echo "What do you want to do next?"
-    echo -n "$fg[green](s)${reset_color}uggest "
-    echo -n "$fg[green](r)${reset_color}efresh "
-    echo -n "$fg[green](c)${reset_color}hoose "
-    echo -n "$fg[red](q)${reset_color}quit "
-    echo -n "(^C to keep on working) "
-    echo
-    read -sk1 input
-    case $input in
-        r)
-            clear
-            question_me
-            ;;
-        s)
-            suggest
-            ;;
-        p)
-            choose prolong
-            ;;
-        c)
-            choose
-            ;;
-        q)
-            exit 0;
-            ;;
-    esac
+    while true; do
+        show_todo
+        echo 
+        echo "What do you want to do next?"
+        echo -n "$fg[green](s)${reset_color}uggest "
+        echo -n "$fg[green](r)${reset_color}efresh "
+        echo -n "$fg[green](c)${reset_color}hoose "
+        echo -n "$fg[red](q)${reset_color}quit "
+        echo -n "(^C to keep on working) "
+        echo
+        read -sk1 input
+        case $input in
+            s)
+                suggest
+                ;;
+            c)
+                choose
+                ;;
+            q)
+                exit 0;
+                ;;
+            r)
+                clear
+                continue
+                ;;
+            *)
+                echo "Hu?"
+                clear
+                continue     
+        esac
+        break
+    done
 }
 
 function suggest() {
