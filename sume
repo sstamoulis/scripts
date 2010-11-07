@@ -79,7 +79,7 @@ def main():
             open_suggestions = priorities
 
         # choose random open suggestion of highest priority
-        print(random.choice(priorities[0]))
+        print(random.choice(open_suggestions))
 
 if __name__ == "__main__":
     main()
