@@ -9,7 +9,7 @@ PRE_FILTER="/home/amon/in/gtd/pre_filter"
 LOG="/home/amon/txt/todo/fume.log"
 TODO="/home/amon/txt/todo/todo.txt"
 SUME="/home/amon/in/fume/sume"
-SIGNAL="/home/amon/in/fume/signal.flac"
+SIGNAL="/home/amon/in/fume/signal.wav"
 
 function show_todo() {
     echo "  -> Incoming transmission! <-"
