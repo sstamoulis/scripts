@@ -126,11 +126,19 @@ function main() {
 
         echo
         echo "Time machine is recharging..."
-        sleep $(( $RANDOM % 11 + 10 ))m
+        sleep $(( $RANDOM % ( $MAX - $MIN + 1 ) + $MIN ))m
         mplayer -really-quiet $SIGNAL &
         echo "$fg[red]BZZZ$reset_color."
         echo -e '\a'
     done
 }
 
+MIN=${1:-10}
+MAX=${2:-20}
+if [[ $MIN != <-> || $MAX != <-> ]]; then
+    echo "min ($MIN) and max ($MAX) must be numbers"
+    exit 1
+fi
+echo "Starting time machine."
+echo "River of time will be fished every $MIN to $MAX minutes..."
 main
