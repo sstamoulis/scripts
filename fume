@@ -26,8 +26,9 @@ function question_me() {
         echo -n "$fg[green](s)${reset_color}uggest "
         echo -n "$fg[green](r)${reset_color}efresh "
         echo -n "$fg[green](c)${reset_color}hoose "
-        echo -n "$fg[green](k)${reset_color}keep on working "
-        echo -n "$fg[red](q)${reset_color}quit"
+        echo -n "$fg[green](d)${reset_color}one "
+        echo -n "$fg[green](k)${reset_color}eep on working "
+        echo -n "$fg[red](q)${reset_color}uit"
         echo
         read -sk1 input
         case $input in
@@ -36,6 +37,11 @@ function question_me() {
                 ;;
             c)
                 choose
+                ;;
+            d)
+                choose_done
+                clear
+                continue
                 ;;
             q)
                 exit 0;
@@ -103,6 +109,23 @@ function choose() {
         *)
             echo "Hu?"
     esac
+}
+
+function choose_done() {
+    echo "What item did you do?"
+    read item
+    case $item in
+        [0-9]*)
+            mark_done $item
+            ;;
+        *)
+            echo "Hu?"
+    esac
+}
+
+function mark_done() {
+    id=$1
+    now do $id
 }
 
 function work_on() {
