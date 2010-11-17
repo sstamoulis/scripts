@@ -54,11 +54,12 @@ def main():
         todo_items = [line.strip() for line in todo
                       if not "@broken" in line
                       and due(line)
+                      and not re.match("^\s*$", line)
                      ]
         todo_items.sort()
         if not todo_items:
             sys.exit(1)
-        
+
         # sort items by priorities
         priorities = [list(g) for k, g 
                       in itertools.groupby(todo_items, priority_of)]
