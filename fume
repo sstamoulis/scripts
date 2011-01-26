@@ -14,8 +14,8 @@ SIGNAL="/home/amon/in/fume/signal.wav"
 function show_todo() {
     echo "  -> Incoming transmission! <-"
     TODOTXT_VERBOSE=0 now list
-    echo "--"
-    ashuku add
+    #echo "--"
+    #ashuku add
 }
 
 function question_me() {
