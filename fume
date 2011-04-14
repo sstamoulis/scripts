@@ -5,7 +5,7 @@
 # read in aliases
 source ~/.zshrc
 
-PRE_FILTER="/home/amon/in/gtd/pre_filter"
+PRE_FILTER="gtd_pre_filter"
 LOG="/home/amon/txt/todo/fume.log"
 TODO="/home/amon/txt/todo/todo.txt"
 SUME="/home/amon/in/fume/sume"
