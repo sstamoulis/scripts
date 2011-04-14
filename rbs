@@ -33,7 +33,7 @@ function backup() {
         echo "removing old snapshots..."
         cutoff_date=$(date --date=$CUTOFF $DATE_FORMAT)
 
-        for cutoff_dir in $(/usr/bin/ruby << RUBY
+        for cutoff_dir in $(/usr/bin/ruby19 << RUBY
         pattern =  /
                     (?<date>
                         (?<year>\d+)
