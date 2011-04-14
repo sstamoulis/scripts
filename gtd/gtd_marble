@@ -1,0 +1,15 @@
+#!/usr/bin/ruby19 -w
+# Copyright muflax <mail@muflax.com>, 2010
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+marbles = ARGV.shift.to_i
+won = 0
+
+marbles.times do |n|
+    won += 1 if rand <= 0.2
+end
+if won.nonzero?
+    puts "You won #{won} marbles!"
+else
+    puts "You didn't win any marble. :("
+end

@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+
+import datetime, fileinput, re
+
+colors = {"none":'',
+          "black":'\033[0;30m',
+          "red":'\033[0;31m',
+          "green":'\033[0;32m',
+          "brown":"\033[0;33m",
+          "blue":"\033[0;34m",\
+          "purple":"\033[0;35m",
+          "cyan":"\033[0;36m",
+          "grey":"\033[0;37m",
+          "light_black":"\033[1;30m",
+          "light_red":"\033[1;31m",
+          "light_green":"\033[1;32m",
+          "light_brown":"\033[1;33m",
+          "light_blue":"\033[1;34m",
+          "light_purple":"\033[1;35m",
+          "light_cyan":"\033[1;36m",
+          "white":"\033[1;37m",
+          "reset":"\033[0m", 
+         }
+
+today = datetime.date.today()
+wdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+# Is there a day until which we should have done something?
+deadline_re = re.compile("""\[( 
+                            (?P<diff>[+-]\d+)
+                        |
+                            ((?P<year>\d{0,2})  / (?=\d{0,2}/) )? 
+                            ((?P<month>\d{0,2}) / (?=\d{0,2})  )?
+                            (?P<day>\d{0,2})
+                        |
+                            (?P<weekday>%s) 
+                        )\]""" % "|".join(wdays), re.X)
+
+# Filter all todos which can only be adressed later on.
+filter_re = re.compile("""\(( 
+                            (?P<diff>[+-]\d+)
+                        |
+                            ((?P<year>\d{0,2})  / (?=\d{0,2}/) )? 
+                            ((?P<month>\d{0,2}) / (?=\d{0,2})  )?
+                            (?P<day>\d{0,2})
+                        |
+                            (?P<weekday>%s) 
+                        )\)""" % "|".join(wdays), re.X)
+
+def parse_date(m, regex):
+    if m.group("diff"):
+        # $diff days away
+        date = today + datetime.timedelta(days=int(m.group("diff")))
+    
+    elif m.group("day"):
+        # parse as (in)complete date, rounding up if necessary
+        day = int(m.group("day"))
+        if m.group("month"):
+            month = int(m.group("month"))
+        else:
+            if day <= today.day:
+                month = today.month + 1
+                if month > 12:
+                    month -= 12
+            else:
+                month = today.month
+        if m.group("year"):
+            year = 2000 + int(m.group("year"))
+        else:
+            if month < today.month:
+                year = today.year + 1
+            else:
+                year = today.year
+        date = datetime.date(year, month, day)
+
+    elif m.group("weekday"):
+        # next matching weekday
+        weekday = wdays.index(m.group("weekday"))
+        diff = weekday - today.weekday()
+        if diff <= 0:
+            diff += 7
+        date = today + datetime.timedelta(days=diff)
+    
+    else:
+        # abort!
+        return line
+
+    if regex == deadline_re:
+        new_date = "[%02d/%02d/%02d]" % (date.year - 2000, date.month, date.day)
+    elif regex == filter_re:
+        new_date = "(%02d/%02d/%02d)" % (date.year - 2000, date.month, date.day)
+    return new_date
+
+def main():
+    for line in fileinput.input():
+        for regex in (deadline_re, filter_re):
+            m = regex.search(line)
+            if m:
+                date = parse_date(m, regex)
+                line = regex.sub(date, line)
+
+        print(line, end="")
+
+if __name__ == "__main__":
+    main()
+

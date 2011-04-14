@@ -1,0 +1,20 @@
+#!/usr/bin/ruby19 -w
+# coding: utf-8
+# Copyright muflax <mail@muflax.com>, 2010
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+marble_re = /
+            ( ^\[ | \s* \[ ) 
+            (?<marbles>\d+)
+            m?
+            \] (\s+|$)
+            /x
+
+STDIN.each_line do |line|
+    line.chomp
+    if m = line.match(marble_re)
+        marbles = m["marbles"].to_i
+        desc = line.sub(marble_re, "")
+        system("shindai points #{marbles} '#{desc}'")
+    end
+end
