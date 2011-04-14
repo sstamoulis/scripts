@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Copyright muflax <mail@muflax.com>, 2009
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+import sys, os, re, time, random
+
+def usage():
+    print("usage: tb time[+standard_deviation]")
+    sys.exit(1)
+
+def timebox(tb_time, sd_time):
+    end = time.time() + (random.gauss(tb_time, sd_time) * 60)
+    aborted = False
+    already_done = 0
+    try:
+        while end > time.time():
+            os.system("echo 'tb: %d分'" % already_done)
+            time.sleep(60)
+            already_done += 1 
+    except KeyboardInterrupt:
+        aborted = True
+        print("aborted...")
+        rem = (end - time.time()) // 60 + 1
+        if tb_time:
+            print("only done: %d minutes, %d remaining" % (already_done, rem))
+    finally:
+        if already_done:
+            sys.stdout.write('\a')
+            sys.stdout.flush() 
+            print("やった！　(*＾０＾*)")
+        
+            if not aborted:
+                os.system("mplayer -quiet -really-quiet /home/amon/.timeboxing")
+
+            os.system("gxmessage -timeout 5 'やった！(*＾０＾*)'")
+            #os.system("alock -auth pam")
+
+
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+    
+    m = re.search("""
+                  ^( (?P<tb_h>\d+) h )? 
+                   ( (?P<tb_m>\d+) m? )?
+                   (\+
+                     ( (?P<sd_h>\d+) h )? 
+                     ( (?P<sd_m>\d+) m? )?  
+                   )?
+                  """, sys.argv[1], re.X)
+    tb_time = sd_time = 0
+    if m:
+        if m.group("tb_h"):
+            tb_time += int(m.group("tb_h"))*60
+        if m.group("tb_m"):
+            tb_time += int(m.group("tb_m"))
+
+        if m.group("sd_h"):
+            sd_time += int(m.group("sd_h"))*60
+        if m.group("sd_m"):
+            sd_time += int(m.group("sd_m"))
+
+    if not (tb_time or sd_time):
+        usage()
+
+    timebox(tb_time, sd_time)
+
+if __name__ == "__main__":
+    main()
+

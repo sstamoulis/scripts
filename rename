@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+
+import re,os,os.path,sys
+from optparse import OptionParser
+
+def main():
+    # option parsing
+    parser = OptionParser(usage="Usage: %prog [OPTIONS] $regex_match $regex_sub")
+    parser.add_option("-n", "--test", action="store_true", default=False,
+                      dest="test", help="no change")
+    parser.add_option("-1", "--once", action="store_true", default=False,
+                      dest="once", help="replace pattern only once")
+    parser.add_option("-f", "--force", action="store_true", default=False,
+                      dest="force", help="force overwrite")
+    (options,args) = parser.parse_args()
+    
+    if len(args) < 3:
+        parser.error("Incorrect number of arguments.")
+
+    try:
+        regex = re.compile(args[0])
+    except:
+        parser.error("Error parsing $regex_match.")
+    else:
+        for src in args[2:]:
+            if regex.search(src):
+                dst = regex.sub(args[1], src, count=int(options.once))
+                if src == dst:
+                    continue
+
+                print("'%s' -> '%s'" % (src, dst))
+                if not options.test:
+                    if os.path.exists(dst):
+                        if options.force:
+                            os.rename(src, dst)
+                        else:
+                            print("ERROR: '%s' already exists!" % dst)
+                            exit(1)
+                    else:
+                        os.rename(src, dst)
+
+if __name__ == "__main__":
+    main()

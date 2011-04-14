@@ -1,0 +1,18 @@
+#!/bin/zsh
+
+pid=$(pidof firefox)
+
+if [ -z $pid ]; then
+    echo "backing up old firefox profile..."
+    pack_ffox.sh
+fi
+
+echo "starting firefox..."
+/usr/bin/firefox $* 2>/dev/null
+
+if [ -z $pid ]; then
+    echo "saving new firefox profile..."
+    pack_ffox.sh
+fi
+
+echo "firefox closed."

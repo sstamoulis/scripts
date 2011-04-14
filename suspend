@@ -1,0 +1,55 @@
+#!/bin/zsh
+
+# suspending...
+###############
+# error checking
+if [[ $# -gt 0 ]] then  
+    TIME=$(( $(date -d "$*" +%s) - $(date +%s)))
+    if [[ $TIME -lt 0 || $TIME -gt $(( 24 * 60 * 60 )) ]] then
+        echo "time $TIME seems invalid..."
+        exit 1
+    fi
+    echo "going down for $(($TIME / 60)) minutes..."
+else
+    TIME=0
+    echo "going doing indefinitely..."
+fi
+
+# daemons
+/etc/init.d/fcron stop
+
+# moduler
+if [[ $(hostname) == "nyarlathotep" ]] then
+    #modprobe -r snd_hda_intel || exit 1
+    modprobe -r iwl3945 || exit 1
+fi
+
+# actual suspend
+if [[ $TIME -gt 0 ]] then
+    rtcwake -m mem -s $TIME
+else
+    echo "mem" > /sys/power/state
+fi
+
+# coming back...
+################
+
+if [[ $(hostname) == "nyarlathotep" ]] then
+    # wlan
+    modprobe iwl3945 || exit 1
+    #sound
+    #/etc/init.d/alsasound restart
+fi
+
+# daemons
+/etc/init.d/fcron start
+
+if [[ $(hostname) == "azathoth" ]] then
+    /etc/init.d/net.eth1 restart
+fi
+
+# wlan
+#if [[ $(hostname) == "nyarlathotep" ]] then
+   #sleep 5
+   #/home/amon/local/src/in/scripts/no_blink_wlan.sh
+#fi

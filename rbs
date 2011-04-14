@@ -1,0 +1,89 @@
+#!/bin/zsh
+
+BACKUP_DIR="/mnt/manji_backup"
+DATE_FORMAT="+%Y-%m-%d_%H:%M:%S"
+CUTOFF="3 months ago"
+TAG="manual"
+TARGETS=("/var" "/boot" "/" "/usr" "/usr/portage" "/home")
+
+alias LOCK="mount -o remount,ro $BACKUP_DIR"
+alias UNLOCK="mount -o remount,rw $BACKUP_DIR"
+
+function backup() {
+    UNLOCK
+        echo "saving daily pigs..."
+        mv /home/amon/pigs/daily/* $BACKUP_DIR/daily_pigs/
+        echo "pigs saved."
+    LOCK
+
+    for origin in $TARGETS
+    do
+        if [[ $origin != "/" ]] then
+            # replace all slashes except the first one by underscore
+            target="${origin[1]}${origin[2,-1]:gs,/,_,}"
+        else
+            target="root"
+        fi
+
+        target_dir="$BACKUP_DIR/$target/$TAG/"
+        current="$BACKUP_DIR/$target/current"
+
+        echo "backing up $origin to $target_dir..."
+
+        echo "removing old snapshots..."
+        cutoff_date=$(date --date=$CUTOFF $DATE_FORMAT)
+
+        for cutoff_dir in $(/usr/bin/ruby << RUBY
+        pattern =  /
+                    (?<date>
+                        (?<year>\d+)
+                        - 
+                        (?<month>\d+)
+                        -
+                        (?<day>\d+)
+                        _
+                        (?<hour>\d+)
+                        :
+                        (?<min>\d+)
+                        :
+                        (?<sec>\d+)
+                    )
+                    (_incomplete)?
+                    /x
+
+        c = "${cutoff_date}".match(pattern)
+
+        Dir["${target_dir}/*"].each do |dir| 
+            if m = dir.match(pattern)
+                if m["date"] < c["date"]
+                    puts dir
+                end
+            end
+        end
+RUBY)
+        do
+            echo "deleting $cutoff_dir"
+    UNLOCK
+            rm -rf --one-file-system $cutoff_dir
+    LOCK
+        done
+
+        echo "starting backup..."
+        date=$(date $DATE_FORMAT)
+    UNLOCK
+        mkdir -p $target_dir
+        
+        rsync -xaP --delete --delete-excluded \
+              --link-dest=$current \
+              $origin/ $target_dir/${date}_incomplete \
+        \
+        && mv $target_dir/${date}_incomplete $target_dir/$date \
+        && rm -f $current \
+        && ln -s $target_dir/$date $current
+    LOCK
+        echo "backup complete"
+    done
+
+    # just to be sure
+    LOCK
+}
