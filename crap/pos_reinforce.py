@@ -10,11 +10,11 @@ def roll_dice(dice=10):
   return random.choice(range(1,dice+1))
 
 def main():
-  num_habits = 1
+  num_habits = 3
   die = 20
-  reward_thres = 30
+  reward_thres = 50
   thres_increase = 5
-  max_days = 100
+  max_days = 30
 
   habits = [0]*num_habits
   day = 0
