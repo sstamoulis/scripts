@@ -1,4 +1,4 @@
 #!/bin/zsh
 
 #emacsclient -c -n --alternate-editor='' $0
-emacs $*
+emacs $* &!
