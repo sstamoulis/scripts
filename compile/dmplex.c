@@ -21,20 +21,20 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 
-Compile:   
-- gcc -Wall dmplex.c -o dmplex
+   Compile:
+   - gcc -Wall dmplex.c -o dmplex
 
-Use:   
-- mkfifo pipe
-- tail -f pipe | dmplex | dzen2
-- echo "1 foo" > pipe
+   Use:
+   - mkfifo pipe
+   - tail -f pipe | dmplex | dzen2
+   - echo "1 foo" > pipe
 
-*/
+ */
 
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MAX_IN_LEN   8192
 #define MAX_SECTIONS 1024
@@ -45,37 +45,39 @@ char *section[MAX_SECTIONS];
 
 int main(int argc, char *argv[])
 {
-	int i, snr, slen;
+  int i, snr, slen, prev;
 
-	while(fgets(tbuf, MAX_IN_LEN, stdin)) {
+  while(fgets(tbuf, MAX_IN_LEN, stdin)) {
+    for(i = 0; i<MAX_IN_LEN && tbuf[i] != ' '; i++) {
+      nbuf[i] = tbuf[i];
+    }
+    nbuf[i] = 0;
+    snr = atoi(nbuf);
 
-		for(i=0; i<MAX_IN_LEN && tbuf[i] != ' '; i++) 
-			nbuf[i] = tbuf[i];
-		nbuf[i] = 0;
-		snr = atoi(nbuf);
+    if(snr < MAX_SECTIONS) {
+      if(section[snr])
+        free(section[snr]); slen = strlen(tbuf + i);
+      section[snr] = calloc(slen, sizeof(char));
 
-		if(snr < MAX_SECTIONS) {
-			if(section[snr])
-				free(section[snr]);
+      if(tbuf[i + slen - 1] == '\n')
+        tbuf[i + slen - 1] = 0; strncpy(section[snr], tbuf + i + 1, slen);
 
-			slen = strlen(tbuf+i);
-			section[snr] = calloc(slen, sizeof(char));
-
-			if(tbuf[i+slen-1] == '\n')
-				tbuf[i+slen-1] = 0;
-
-			strncpy(section[snr], tbuf+i+1, slen);
-
-			for(i=0; i<MAX_SECTIONS; i++) {
-				if(section[i])
-					printf("%s", section[i]);
-			}
-			printf("\n");
-			fflush(stdout);
-		}
-	}
+      prev = 0;
+      for(i = 0; i<MAX_SECTIONS; i++) {
+        if (section[i]) {
+          if (i > 0 && prev) {
+            printf(" | ");
+          }
+          prev = 1;
+          printf("%s", section[i]);
+        }
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
 
 
-	return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
