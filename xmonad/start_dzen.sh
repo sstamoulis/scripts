@@ -30,8 +30,8 @@ case $HOSTNAME in
 esac
 
 DZEN="dzen2 -p -fg '$FG' -bg '$BG' -fn '$FN' -e '$E' -h '$H' -y '$(($HEIGHT - $H))'" 
-DZEN_LEFT="$DZEN -x '0' -w '$(($WIDTH / 2))' -ta 'l'"
-DZEN_RIGHT="$DZEN -x '$(($WIDTH / 2))' -w '$(($WIDTH / 2))' -ta 'r'"
+DZEN_LEFT="$DZEN -x '0' -w '$(($WIDTH / 3))' -ta 'l'"
+DZEN_RIGHT="$DZEN -x '$(( $WIDTH / 3))' -w '$(( ($WIDTH / 3) * 2))' -ta 'r'"
 
 # make 2 pipes - one for xmonad's output and one for the status bar
 XPIPE=~/.xmonad/xmonad-pipe
