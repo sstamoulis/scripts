@@ -11,7 +11,7 @@ LOG="$TODO_DIR/fume.log"
 TODO="$TODO_DIR/fume.txt"
 
 # other tools/files used
-FUMETXT="todo.sh -d $HOME/.todo-fume.cfg"
+FUMETXT="TODOTXT_VERBOSE=0 todo.sh -d $HOME/.todo-fume.cfg"
 PRE_FILTER="gtd_pre_filter"
 SIGNAL="$HOME/in/scripts/fume/signal.wav"
 SUME="sume"
