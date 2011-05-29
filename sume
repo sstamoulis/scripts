@@ -2,10 +2,10 @@
 # Copyright muflax <mail@muflax.com>, 2010
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
-import datetime, re, sys, itertools, random
+import datetime, os.path, re, sys, itertools, random
 
-TODO="/home/amon/txt/todo/todo.txt"
-LOG="/home/amon/txt/todo/fume.log"
+TODO=os.path.expanduser("~/spoiler/todo/fume.txt")
+LOG=os.path.expanduser("~/spoiler/todo/fume.log")
 
 # From which day on should we start working on the item?
 filter_re = re.compile("(\( (?P<year>\d+) / (?P<month>\d+) / (?P<day>\d+) \))",
@@ -47,6 +47,18 @@ def suggestions(log_items, priorities):
         if done:
             break
     return sug
+
+def choose(suggestions):
+    weighted_suggestions = []
+    max_pri = len(suggestions)
+    
+    for pri, items in enumerate(suggestions):
+        # invert priorities so that the first is the highest
+        pri = max_pri - pri
+        for i in range(pri):
+            weighted_suggestions.extend(items)
+
+    return random.choice(weighted_suggestions)
            
 def main():
     with open(TODO) as todo, open(LOG) as log:
@@ -61,26 +73,11 @@ def main():
             sys.exit(1)
 
         # sort items by priorities
-        priorities = [list(g) for k, g 
-                      in itertools.groupby(todo_items, priority_of)]
-        
-        # get log entries
-        log_items = []
-        for line in log:
-            m = re.search("^(\d+) (.*)$", line)
-            if m:
-                log_items.append((datetime.date.fromtimestamp(int(m.group(1))),
-                                  m.group(2).strip()))
-
-        # filter priorities based on what we already did today
-        open_suggestions = suggestions(log_items, priorities)
-
-        # already worked on everything, so pick freely
-        if not open_suggestions:
-            open_suggestions = priorities
+        suggestions = [list(items) for pri, items 
+                       in itertools.groupby(todo_items, priority_of)]
 
         # choose random open suggestion of highest priority
-        print(random.choice(open_suggestions))
+        print(choose(suggestions))
 
 if __name__ == "__main__":
     main()
