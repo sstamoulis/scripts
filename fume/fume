@@ -12,9 +12,11 @@ TODO="$TODO_DIR/fume.txt"
 
 # other tools/files used
 FUMETXT="TODOTXT_VERBOSE=0 todo.sh -d $HOME/.todo-fume.cfg"
+GET_CONTEXT="fume_get_context"
 PRE_FILTER="gtd_pre_filter"
 SIGNAL="$HOME/in/scripts/fume/signal.wav"
 SUME="sume"
+TIMETRAP="ti"
 
 function show_todo() {
     echo "  -> Incoming transmission! <-"
@@ -111,8 +113,20 @@ function choose() {
 function work_on() {
     id=$1
     item=$(eval $FUMETXT list_item $id)
+    
     echo "working on '$(echo $item | $PRE_FILTER)'"
     echo "$(date +%s) $item" >> $LOG
+    
+    # extract context the item is in for timetrap
+    context=$(echo $item | eval $GET_CONTEXT)
+    if [[ -n $context ]]; then 
+        eval $TIMETRAP sheet $context
+
+        # add a task
+        echo "What's the specific task?"
+        read task
+        eval $TIMETRAP in "$item - $task"
+    fi
 }
 
 function procrastinate_on() {

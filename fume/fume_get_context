@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+
+import fileinput, re
+
+context_re = re.compile("(?<=@)\w+")
+
+def parse_context(line):
+    matches = context_re.findall(line)
+    for match in matches:
+        if match != "broken":
+            return match
+    return ""
+
+def main():
+    for line in fileinput.input():
+        # context
+        context = parse_context(line)
+        print(context, end="")
+
+if __name__ == "__main__":
+    main()
+
+
