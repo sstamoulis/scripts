@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+# Copyright muflax <mail@muflax.com>, 2010
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+import datetime, os.path, re, sys, itertools, random
+
+TODO=os.path.expanduser("~/spoiler/todo/fume.txt")
+LOG=os.path.expanduser("~/spoiler/todo/fume.log")
+
+# From which day on should we start working on the item?
+filter_re = re.compile("(\( (?P<year>\d+) / (?P<month>\d+) / (?P<day>\d+) \))",
+                     re.X)
+today = datetime.date.today()
+
+def parse_date(match):
+    year, month, day = (int(match.group("year")),
+                        int(match.group("month")),
+                        int(match.group("day")))
+    date = datetime.date(2000+year, month, day)
+    diff = (date - today).days      
+    return (diff, year, month, day)
+
+def due(line):
+    match = filter_re.search(line)
+    if match:
+        diff = parse_date(match)[0]
+        return diff <= 0
+    return True
+
+def priority_of(line):
+    m = re.search("\(([A-Z])\) ", line)
+    if m:
+        return m.group(1)
+    else:
+        return "~"
+        
+def suggestions(log_items, priorities):
+    sug = []
+    log_today = {entry for date, entry in log_items
+                 if date == today}
+    done = False
+    for pri in range(len(priorities)):
+        for item in priorities[pri]:
+            if item not in log_today:
+                sug.append(item)
+                done = True
+        if done:
+            break
+    return sug
+
+def choose(suggestions):
+    weighted_suggestions = []
+    max_pri = len(suggestions)
+    
+    for pri, items in enumerate(suggestions):
+        # invert priorities so that the first is the highest
+        pri = max_pri - pri
+        for i in range(pri):
+            weighted_suggestions.extend(items)
+
+    return random.choice(weighted_suggestions)
+           
+def main():
+    with open(TODO) as todo, open(LOG) as log:
+        # gather valid todo items
+        todo_items = [line.strip() for line in todo
+                      if not "@broken" in line
+                      and due(line)
+                      and not re.match("^\s*$", line)
+                     ]
+        todo_items.sort()
+        if not todo_items:
+            sys.exit(1)
+
+        # sort items by priorities
+        suggestions = [list(items) for pri, items 
+                       in itertools.groupby(todo_items, priority_of)]
+
+        # choose random open suggestion of highest priority
+        print(choose(suggestions))
+
+if __name__ == "__main__":
+    main()
