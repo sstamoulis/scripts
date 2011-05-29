@@ -32,6 +32,7 @@ function question_me() {
         echo -n "$fg[green](r)${reset_color}efresh "
         echo -n "$fg[green](c)${reset_color}hoose "
         echo -n "$fg[green](k)${reset_color}eep on working "
+        echo -n "$fg[green](o)${reset_color}ut "
         echo -n "$fg[red](q)${reset_color}uit"
         echo
         read -sk1 input
@@ -51,6 +52,10 @@ function question_me() {
                 ;;
             k)
                 break;
+                ;;
+            o) 
+                eval $TIMETRAP out
+                continue
                 ;;
             *)
                 echo "Hu?"
