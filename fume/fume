@@ -5,13 +5,16 @@
 # read in aliases
 source ~/.zshrc
 
-PRE_FILTER="gtd_pre_filter"
+# todo files
 TODO_DIR="$HOME/spoiler/todo"
 LOG="$TODO_DIR/fume.log"
 TODO="$TODO_DIR/fume.txt"
-SUME="sume"
-SIGNAL="$HOME/in/fume/signal.wav"
+
+# other tools/files used
 FUMETXT="todo.sh -d $HOME/.todo-fume.cfg"
+PRE_FILTER="gtd_pre_filter"
+SIGNAL="$HOME/in/scripts/fume/signal.wav"
+SUME="sume"
 
 function show_todo() {
     echo "  -> Incoming transmission! <-"
