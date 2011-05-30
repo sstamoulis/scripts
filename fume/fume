@@ -16,7 +16,7 @@ GET_CONTEXT="fume_get_context"
 PRE_FILTER="gtd_pre_filter"
 SIGNAL="$HOME/in/scripts/fume/signal.wav"
 SUME="sume"
-TIMETRAP="ti"
+TIMETRAP="noglob ti"
 
 function show_todo() {
     echo "  -> Incoming transmission! <-"
@@ -130,7 +130,11 @@ function work_on() {
         # add a task
         echo "What's the specific task?"
         read task
-        eval $TIMETRAP in "$item - $task"
+        if [[ -n $task ]]; then
+            eval "$TIMETRAP in $item - $task"
+        else
+            eval "$TIMETRAP in $item"
+        fi
     fi
 }
 
