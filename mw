@@ -14,6 +14,10 @@ def main():
                  help="left screen", default="left")
     p.add_option("-r", "--right", action="store_const", const="right", dest="where", 
                  help="right screen")
+    p.add_option("-s", "--spped", action="store", dest="speed", type="int", 
+                 help="increase speed by SPEED")
+    p.add_option("-y", "--youtube", action="store_const", const="youtube",
+                 dest="youtube", help="youtube mode")
 
     opt, args = p.parse_args()
 
@@ -39,6 +43,17 @@ def main():
     args[:0] = ["-af-add", "scaletempo"]
     if opt.volume:
         args[:0] = ["-af-add", "volume={}".format(opt.volume)]
+    
+    # speed increase
+    if opt.speed:
+        args[:0] = ["-speed", "{}".format(opt.speed)]
+
+    # youtube mode: if we're in a youtube-y folder, add a speed-up
+    if opt.youtube == "youtube":
+        path = os.getcwd()
+        for s in ["/home/amon/youtube", "/home/amon/テレビ/insight"]:
+            if s in path:
+                args[:0] = ["-speed", "1.4"]
     
     # azathoth needs a wrapper, though
     cmd = ["mplayer"]
