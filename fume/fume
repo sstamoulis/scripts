@@ -19,151 +19,152 @@ SUME="sume"
 TIMETRAP="noglob ti"
 
 function show_todo() {
-    echo "  -> Incoming transmission! <-"
-    eval $FUMETXT list
+  echo "  -> Incoming transmission! <-"
+  eval $FUMETXT list
 }
 
 function question_me() {
-    while true; do
-        show_todo
-        echo 
-        echo "What do you want to do next?"
-        echo -n "$fg[green](s)${reset_color}uggest "
-        echo -n "$fg[green](r)${reset_color}efresh "
-        echo -n "$fg[green](c)${reset_color}hoose "
-        echo -n "$fg[green](k)${reset_color}eep on working "
-        echo -n "$fg[green](o)${reset_color}ut "
-        echo -n "$fg[red](q)${reset_color}uit"
-        echo
-        read -sk1 input
-        case $input in
-            s)
-                suggest
-                ;;
-            c)
-                choose
-                ;;
-            q)
-                exit 0;
-                ;;
-            r)
-                clear
-                continue
-                ;;
-            k)
-                break;
-                ;;
-            o) 
-                eval $TIMETRAP out
-                continue
-                ;;
-            *)
-                echo "Hu?"
-                clear
-                continue     
-        esac
-        break
-    done
+  while true; do
+    show_todo
+    echo 
+    echo "What do you want to do next?"
+    echo -n "$fg[green](s)${reset_color}uggest "
+    echo -n "$fg[green](r)${reset_color}efresh "
+    echo -n "$fg[green](c)${reset_color}hoose "
+    echo -n "$fg[green](k)${reset_color}eep on working "
+    echo -n "$fg[green](o)${reset_color}ut "
+    echo -n "$fg[red](q)${reset_color}uit"
+    echo
+    read -sk1 input
+    case $input in
+      s)
+        suggest
+        ;;
+      c)
+        choose
+        ;;
+      q)
+        exit 0;
+        ;;
+      r)
+        clear
+        continue
+        ;;
+      k)
+        break;
+        ;;
+      o) 
+        eval $TIMETRAP out
+        continue
+        ;;
+      *)
+        echo "Hu?"
+        clear
+        continue     
+    esac
+    break
+  done
 }
 
 function suggest() {
     # pick items until a suggestion works
-    while true; do
-        suggestion=$(eval $SUME)
-        if [[ -z $suggestion ]]; then
-            echo "Nothing to do. Sorry."
-            return
-        fi
+  while true; do
+    suggestion=$(eval $SUME)
+    if [[ -z $suggestion ]]; then
+      echo "Nothing to do. Sorry."
+      return
+    fi
 
-        echo "What about '$(echo $suggestion | $PRE_FILTER)'?"
-        echo -n "$fg[green](s)${reset_color}ure "
-        echo -n "$fg[red](n)${reset_color}ope "
-        echo
-        read -sk1 input
-        id=$(id_of $suggestion)
-        case $input in
-            s)
-                work_on $id
-                return
-                ;;
-            n)
-                procrastinate_on $id
-                continue
-                ;;
-            *)
-                echo "Hu?"
-        esac
-    done
+    echo "What about '$(echo $suggestion | $PRE_FILTER)'?"
+    echo -n "$fg[green](s)${reset_color}ure "
+    echo -n "$fg[red](n)${reset_color}ope "
+    echo
+    read -sk1 input
+    id=$(id_of $suggestion)
+    case $input in
+      s)
+        work_on $id
+        return
+        ;;
+      n)
+        procrastinate_on $id
+        continue
+        ;;
+      *)
+        echo "Hu?"
+    esac
+  done
 }
 
 function id_of() {
-    item=$1
-    id=$(/bin/grep -nF "$item" $TODO | /bin/grep -oP "^\d+")
-    echo $id
+  item=$1
+  id=$(/bin/grep -nF "$item" $TODO | /bin/grep -oP "^\d+")
+  echo $id
 }
-    
+
 
 function choose() {
-    echo "What item do you want?"
-    read item
-    case $item in
-        [0-9]*)
-            work_on $item
-            ;;
-        *)
-            echo "Hu?"
-    esac
+  echo "What item do you want?"
+  read item
+  case $item in
+    [0-9]*)
+      work_on $item
+      ;;
+    *)
+      echo "Hu?"
+  esac
 }
 
 function work_on() {
-    id=$1
-    item=$(eval $FUMETXT list_item $id)
-    
-    echo "working on '$(echo $item | $PRE_FILTER)'"
-    echo "$(date +%s) $item" >> $LOG
-    
+  id=$1
+  item=$(eval $FUMETXT list_item $id)
+  
+  echo "working on '$(echo $item | $PRE_FILTER)'"
+  echo "$(date +%s) $item" >> $LOG
+  
     # extract context the item is in for timetrap
-    context=$(echo $item | eval $GET_CONTEXT)
-    if [[ -n $context ]]; then 
-        eval $TIMETRAP sheet $context
+  context=$(echo $item | eval $GET_CONTEXT)
+  if [[ -n $context ]]; then 
+    eval $TIMETRAP sheet $context
 
         # add a task
-        echo "What's the specific task?"
-        read task
-        if [[ -n $task ]]; then
-            eval "$TIMETRAP in $item - $task"
-        else
-            eval "$TIMETRAP in $item"
-        fi
+    echo "What's the specific task?"
+    read task
+    if [[ -n $task ]]; then
+      eval "$TIMETRAP in $item - $task"
+    else
+      eval "$TIMETRAP in $item"
     fi
+  fi
 }
 
 function procrastinate_on() {
-    id=$1
-    echo "Transmission error detected. Requesting retry..."
-    eval $FUMETXT append $id @broken
+  id=$1
+  echo "Transmission error detected. Requesting retry..."
+  eval $FUMETXT append $id @broken
 }
 
-function main() {
-    trap 'echo "Time machine boggled, recalibrating..."' INT
-    while true; do
-        question_me
+function run() {
+  trap 'echo "Time machine boggled, recalibrating..."' INT
+  while true; do
+    question_me
 
-        echo
-        echo "Time machine is recharging..."
-        sleep $(( $RANDOM % ( $MAX - $MIN + 1 ) + $MIN ))m
-        mplayer -really-quiet $SIGNAL &
-        echo "$fg[red]BZZZ$reset_color."
-        echo -e '\a'
-    done
+    echo
+    echo "Time machine is recharging..."
+    sleep $(( $RANDOM % ( $MAX - $MIN + 1 ) + $MIN ))m
+    mplayer -really-quiet $SIGNAL &
+    echo "$fg[red]BZZZ$reset_color."
+    echo -e '\a'
+  done
+  
 }
 
 MIN=${1:-10}
 MAX=${2:-20}
 if [[ $MIN != <-> || $MAX != <-> ]]; then
-    echo "min ($MIN) and max ($MAX) must be numbers"
-    exit 1
+  echo "min ($MIN) and max ($MAX) must be numbers"
+  exit 1
 fi
 echo "Starting time machine."
 echo "River of time will be fished every $MIN to $MAX minutes..."
-main
+run
