@@ -9,7 +9,7 @@ lang = "de"
 
 ARGV.each do |url| 
   arte_path = "/home/amon/映画/arte"
-  Dir.mkdir(arte_path)
+  Dir.mkdir(arte_path) if not Dir.exists? arte_path
   target = "#{arte_path}/#{File::basename(url).sub(".html", ".flv")}"
 
   site = open(url)
@@ -46,4 +46,5 @@ ARGV.each do |url|
 end
 
 # delete .swfinfo
-File.delete("/home/amon/.swfinfo")
+swfinfo = "/home/amon/.swfinfo"
+File.delete(swfinfo) if File.exists? swfinfo
