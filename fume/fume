@@ -79,11 +79,12 @@ class Fume
         ratios << colorize("%3.0f%%" % [ratio * 100], color)
       end
       
-      puts "%{id} %{rating} %{context} %{id} #{entry.text}" % {
+      puts "%{id} %{weight} %{rating} %{context} %{id} #{entry.text}" % {
         id: colorize("<%02d>" % (i+1), :purple),
         context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"),
                           repeated_cxt ? :light_black : :brown),
         rating: "[#{ ratios.join ' | ' }]",
+        weight: colorize("%3dx" % target, repeated_cxt ? :light_black : :white),
       }
     end
 
@@ -99,7 +100,7 @@ class Fume
         end
     end
     
-    puts "sum: [#{hours.join ' | '}]"
+    puts "sum: %3dx [#{hours.join ' | '}]" % global_weight
   end
 
   def length_of_longest_in(list)
