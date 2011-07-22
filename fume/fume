@@ -58,9 +58,13 @@ class Fume
       
       ratios = []
       @times.each do |time|
-        ratio = (quota[time].to_f / global_quota[time])
+        ratio =
+          unless global_quota[time].zero?
+            (quota[time].to_f / global_quota[time])
+          else
+            0.0
+          end
         diff = ratio / weight
-        # puts "#{time} got #{diff} of #{weight} (#{global_weight})"
         color =
           if diff > 0.8
             :green
