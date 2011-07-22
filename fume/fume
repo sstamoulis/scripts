@@ -155,18 +155,21 @@ class Fume
       quota = {}
       intervals.each do |time, opt|
         Timetrap::CLI.parse "#{context} #{opt}"
-        entries = Timetrap::CLI.selected_entries
-        quota[time] = entries.inject(0) {|m, e| m += e.duration}
+        quota[time] =
+          begin
+            entries = Timetrap::CLI.selected_entries
+            entries.inject(0) {|m, e| m += e.duration}
+          rescue
+            0
+          end
       end
       quotas[context] = quota
     end
 
     # global quota
     global_quota = {}
-    intervals.each do |time, opt|
-      Timetrap::CLI.parse "#{contexts.join " "} #{opt}"
-      entries = Timetrap::CLI.selected_entries
-      global_quota[time] = entries.inject(0) {|m, e| m += e.duration}
+    @times.each do |time|
+      global_quota[time] = quotas.values.reduce(0){|s,v| s+v[time]}
     end
     quotas[:all] = global_quota
     
