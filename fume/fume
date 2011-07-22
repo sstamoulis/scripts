@@ -51,11 +51,12 @@ class Fume
 
     # let's make some sausage
     @entries.each_with_index do |entry, i|
-      ctx    = entry.contexts[0]
-      quota  = quotas[ctx]
-      target = targets[ctx]
-      weight = target.to_f / global_weight
-      
+      ctx          = entry.contexts[0]
+      quota        = quotas[ctx]
+      target       = targets[ctx]
+      weight       = target.to_f / global_weight
+      repeated_cxt = (i > 0 && @entries[i-1].contexts[0] == ctx)
+
       ratios = []
       @times.each do |time|
         ratio =
@@ -66,7 +67,9 @@ class Fume
           end
         diff = ratio / weight
         color =
-          if diff > 0.8
+          if repeated_cxt
+            :light_black
+          elsif diff > 0.8
             :green
           elsif diff > 0.5
             :brown
@@ -78,7 +81,8 @@ class Fume
       
       puts "%{id} %{rating} %{context} %{id} #{entry.text}" % {
         id: colorize("<%02d>" % (i+1), :purple),
-        context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"), :brown),
+        context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"),
+                          repeated_cxt ? :light_black : :brown),
         rating: "[#{ ratios.join ' | ' }]",
       }
     end
