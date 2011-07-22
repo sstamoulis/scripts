@@ -3,30 +3,170 @@
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
 require "highline"
+require "mastodon"
+require "timetrap"
 
 class Fume
   # todo files
-  TODO_DIR = File.join(Dir.home, "/spoiler/todo")
-  LOG      = File.join(TODO_DIR, "fume.log")
-  TODO     = File.join(TODO_DIR, "fume.txt")
+  TODO_DIR   = File.join(Dir.home, "/spoiler/todo")
+  LOG        = File.join(TODO_DIR, "fume.log")
+  TODO       = File.join(TODO_DIR, "fume.txt")
 
   # other tools/files used
-  FUMETXT     = "todo.sh -d $HOME/.todo-fume.cfg"
-  GET_CONTEXT = "fume_get_context"
-  PRE_FILTER  = "gtd_pre_filter"
-  SIGNAL      = File.join(Dir.home, "/in/scripts/fume/signal.wav")
-  SUME        = "sume"
-  TIMETRAP    = "ti"
+  PRE_FILTER = "gtd_pre_filter"
+  SIGNAL     = File.join(Dir.home, "/in/scripts/fume/signal.wav")
 
   def initialize time
     @time = if nil? then 10..20 else time end
     @h = HighLine.new
     @log = File.open(LOG, "a")
+    @entries = []
+    @times = [:today, :week, :month, :total]
+    
+    reload_todo
+    
+    # initialize timetrap
+    Timetrap::CLI.args = Getopt::Declare.new("#{Timetrap::CLI::USAGE}")
   end
 
+  def reload_todo
+    @todo = Mastodon.new(File.readlines(TODO))
+  end
+  
   def show_todo
     puts "  -> Incoming transmission! <-"
-    system "#{FUMETXT} list"
+
+    # let's grab all the necessary data
+    reload_todo
+    contexts      = @todo.contexts
+    ctx_length    = length_of_longest_in contexts
+
+    quotas        = get_quotas contexts
+    global_quota  = quotas[:all]
+    targets       = get_targets contexts
+    global_weight = targets.reduce(0) {|sum, (t, w)| sum+w}
+    
+    todos         = @todo.todos.sort
+    @entries      = get_entries todos
+
+    # let's make some sausage
+    @entries.each_with_index do |entry, i|
+      ctx    = entry.contexts[0]
+      quota  = quotas[ctx]
+      target = targets[ctx]
+      weight = target.to_f / global_weight
+      
+      ratios = []
+      @times.each do |time|
+        ratio = (quota[time].to_f / global_quota[time])
+        diff = ratio / weight
+        # puts "#{time} got #{diff} of #{weight} (#{global_weight})"
+        color =
+          if diff > 0.8
+            :green
+          elsif diff > 0.5
+            :brown
+          else
+            :red
+          end
+        ratios << colorize("%3.0f%%" % [ratio * 100], color)
+      end
+      
+      puts "%{id} %{rating} %{context} %{id} #{entry.text}" % {
+        id: colorize("<%02d>" % (i+1), :purple),
+        context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"), :brown),
+        rating: "[#{ ratios.join ' | ' }]",
+      }
+    end
+
+    # summary
+    hours = []
+    @times.each do |time|
+      hour = global_quota[time] / 3600.to_f
+      hours <<
+        if hour < 100
+          "%4.1f" % hour
+        else
+          "%4.0f" % hour
+        end
+    end
+    
+    puts "sum: [#{hours.join ' | '}]"
+  end
+
+  def length_of_longest_in(list)
+    list.max do |a, b| 
+      a.to_s.length <=> b.to_s.length
+    end.to_s.length
+  end
+  
+  # filter out meta entries
+  def get_entries todos
+    todos.
+      select{|t| (get_weight t).nil?}.
+      select{|t| not t.contexts.include? "broken"}.
+      select{|t| not t.contexts.empty?}
+  end
+  
+  def get_targets contexts
+    targets = {}
+
+    contexts.each do |context|
+      todos = @todo.find_context context
+
+      # try to find an entry with !weight declaration or default to 1
+      weight = 1
+      todos.each do |todo|
+        if (w = get_weight todo)
+          weight = w
+          break
+        end
+      end
+      targets[context] = weight
+    end
+    
+    return targets
+  end
+
+  def get_weight todo
+    if (m = todo.text.match /(^ | \s+)! (?<weight>\d+) (\s+|$)/x)
+      m[:weight].to_i
+    else
+      nil
+    end
+  end
+
+
+  def get_quotas contexts
+    intervals = {
+      today: "-s '24 hours ago'",
+      week:  "-s '7 days ago'",
+      month: "-s 'first day this month'",
+      total: ""
+    }
+    quotas = {}
+
+    # quota for individual contexts
+    contexts.each do |context|
+      quota = {}
+      intervals.each do |time, opt|
+        Timetrap::CLI.parse "#{context} #{opt}"
+        entries = Timetrap::CLI.selected_entries
+        quota[time] = entries.inject(0) {|m, e| m += e.duration}
+      end
+      quotas[context] = quota
+    end
+
+    # global quota
+    global_quota = {}
+    intervals.each do |time, opt|
+      Timetrap::CLI.parse "#{contexts.join " "} #{opt}"
+      entries = Timetrap::CLI.selected_entries
+      global_quota[time] = entries.inject(0) {|m, e| m += e.duration}
+    end
+    quotas[:all] = global_quota
+    
+    return quotas
   end
 
   def run
@@ -44,7 +184,7 @@ class Fume
 
         system "clear"
         system "mplayer -really-quiet #{SIGNAL} &"
-        puts "#{color("-> BZZZ <-".center(30), :red)}\a"
+        puts "#{colorize("-> BZZZ <-".center(30), :red)}\a"
       rescue Interrupt
         puts "Time machine boggled, recalibrating..."
       end
@@ -81,7 +221,7 @@ class Fume
       when "k"
         break
       when "o"
-        system "#{TIMETRAP} out"
+        timetrap "out"
         next
       end
       
@@ -90,21 +230,26 @@ class Fume
     end
   end
 
+  def timetrap cmd
+    Timetrap::CLI.parse cmd
+    Timetrap::CLI.invoke
+  end
+
   def keywordify string, color
-    "(#{color(string[0], color)})#{string[1..-1]}"
+    "(#{colorize(string[0], color)})#{string[1..-1]}"
   end
 
   def suggest
     # pick items until a suggestion works
     while true
-      suggestion = %x{#{SUME}}
+      id = suggest_entry
 
-      if suggestion.empty?
+      if id.nil?
         puts "Nothing to do. Sorry."
         return
       end
       
-      puts "What about #{pre_filter suggestion}?"
+      puts "What about #{pre_filter @entries[id]}?"
       print "#{keywordify("sure", :green)} "
       print "#{keywordify("nope", :red)}"
       input = @h.ask(" ") do |q|
@@ -112,7 +257,6 @@ class Fume
         q.character = true
       end
       
-      id = id_of suggestion
       case input
       when "s"
         work_on id
@@ -123,43 +267,36 @@ class Fume
     end
   end
 
-  def choose
-    id = @h.ask("What item do you want? ", Integer)# {|q| q.}
-    work_on id
+  def suggest_entry
+    # TODO base suggestion on current quota
+    rand @entries.size
   end
-
-  def id_of item
-    if (m = %x{/bin/grep -nF '#{item}' #{TODO}}.match /^\d+/)
-      m[0]
-    else
-      nil
-    end
+    
+  def choose
+    id = @h.ask("What item do you want? ", Integer) {|q| q.in = 1..@entries.size}
+    work_on (id - 1)
   end
 
   def pre_filter string
     %x{echo '#{string}' | #{PRE_FILTER}}.strip
   end
 
-  def get_context item
-    %x{echo '#{item}' | #{GET_CONTEXT}}.strip
-  end
-  
   def work_on id
-    item = %x{#{FUMETXT} list_item #{id}}
-    puts "Working on #{pre_filter(item)}..."
-    @log.write "#{Time.now.strftime("%s")} #{item}"
+    item = @entries[id]
+    puts "Working on #{pre_filter(item.to_s)}..."
+    @log.write "#{Time.now.strftime("%s")} #{item.to_s}"
     
     # extract context the item is in for timetrap
-    context = get_context item
+    context = item.contexts.join " "
     unless context.empty?
-      system "#{TIMETRAP} sheet #{context}"
+      timetrap "sheet #{context}"
 
       # add a task
       task = @h.ask("Care to name a specific task? [ENTER to skip]")
       unless task.empty?
-        system "#{TIMETRAP} in #{item} - #{task}"
+        timetrap "in #{item} - #{task}"
       else
-        system "#{TIMETRAP} in #{item}"
+        timetrap "in #{item}"
       end
     else
       puts "No context found. Aborting."
@@ -167,8 +304,9 @@ class Fume
   end
 
   def procrastinate_on id
+    # FIXME translate IDs or something...
     puts "Transmission error detected. Requesting retry..."
-    system "#{FUMETXT} append #{id} @broken"
+    # system "#{FUMETXT} append #{id} @broken"
   end
 
   Colors = {
@@ -192,7 +330,7 @@ class Fume
     reset:"\033[0m",
   }
 
-  def color(str, name)
+  def colorize(str, name)
     "#{Colors[name]}#{str}#{Colors[:reset]}"
   end
 end
