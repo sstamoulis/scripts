@@ -57,7 +57,8 @@ class Fume
       weight       = target.to_f / global_weight
       repeated_cxt = (i > 0 && @entries[i-1].contexts[0] == ctx)
 
-      ratios = []
+      ratios      = {}
+      necessaries = {}
       @times.each do |time|
         ratio =
           unless global_quota[time].zero?
@@ -76,14 +77,26 @@ class Fume
           else
             :red
           end
-        ratios << colorize("%3.0f%%" % [ratio * 100], color)
+        ratios[time] = colorize("%3.0f%%" % [ratio * 100], color)
+
+        # How many hours do I have to add to make the target?
+        # formula: r = q / g =?= w
+        #       => q+c / g+c = w
+        #       => c = (q - (g*w)) / (w-1) [thanks Wolfram Alpha!]
+        necessary  = (quota[time] - (weight * global_quota[time])) / ((weight-1)) / 3600.0
+        necessaries[time] = colorize((necessary.abs < 10 ?
+                                      "%+4.1f" % necessary :
+                                      "%+4.0f" % necessary),
+                                     repeated_cxt ? :light_black : :white)
       end
-      
+
+      ratings = @times.map{|t| "#{ratios[t]}#{necessaries[t]}"}.join ' | '
+
       puts "%{id} %{weight} %{rating} %{context} %{id} #{entry.text}" % {
         id: colorize("<%02d>" % (i+1), :purple),
         context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"),
                           repeated_cxt ? :light_black : :brown),
-        rating: "[#{ ratios.join ' | ' }]",
+        rating: colorize("[#{ratings}]", repeated_cxt ? :light_black : :white),
         weight: colorize("%3dx" % target, repeated_cxt ? :light_black : :white),
       }
     end
@@ -91,15 +104,9 @@ class Fume
     # summary
     hours = []
     @times.each do |time|
-      hour = global_quota[time] / 3600.to_f
-      hours <<
-        if hour < 100
-          "%4.1f" % hour
-        else
-          "%4.0f" % hour
-        end
+      hours << "%7.1fh" % [global_quota[time] / 3600.to_f]
     end
-    
+
     puts "sum: %3dx [#{hours.join ' | '}]" % global_weight
   end
 
