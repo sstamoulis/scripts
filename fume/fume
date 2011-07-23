@@ -294,6 +294,11 @@ class Fume
   end
 
   def work_on id
+    # first check out
+    if Timetrap::Timer.running?
+      timetrap "out"
+    end
+    
     item = @entries[id]
     puts "Working on #{pre_filter(item.to_s)}..."
     @log.write "#{Time.now.strftime("%s")} #{item.to_s}"
