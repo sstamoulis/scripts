@@ -10,80 +10,105 @@ alias LOCK="mount -o remount,ro $BACKUP_DIR"
 alias UNLOCK="mount -o remount,rw $BACKUP_DIR"
 
 function backup() {
-    UNLOCK
-        echo "saving daily pigs..."
-        mv /home/amon/pigs/daily/* $BACKUP_DIR/daily_pigs/
-        echo "pigs saved."
-    LOCK
+  # check for lockfile
+  if [[ -f $BACKUP_DIR/rbs.lock ]]; then
+    echo "lockfile found, checking for running process..."
+    # process already running?
+    if [[ "$(ps -p $(cat $BACKUP_DIR/rbs.lock) | wc -l)" -gt 1 ]]; then
+      echo "process already running, aborting..."
+      exit 1
+    else
+      echo "removing orphaned lock..."
+      UNLOCK
+        rm -f $BACKUP_DIR/rbs.lock
+      LOCK
+    fi
+  fi
 
-    for origin in $TARGETS
-    do
-        if [[ $origin != "/" ]] then
-            # replace all slashes except the first one by underscore
-            target="${origin[1]}${origin[2,-1]:gs,/,_,}"
-        else
-            target="root"
-        fi
+  # create lockfile
+  UNLOCK
+    echo $$ > $BACKUP_DIR/rbs.lock
+  LOCK
 
-        target_dir="$BACKUP_DIR/$target/$TAG/"
-        current="$BACKUP_DIR/$target/current"
+  UNLOCK
+    echo "saving daily pigs..."
+    mv /home/amon/pigs/daily/* $BACKUP_DIR/daily_pigs/
+    echo "pigs saved."
+  LOCK
 
-        echo "backing up $origin to $target_dir..."
+  for origin in $TARGETS
+  do
+    if [[ $origin != "/" ]] then
+      # replace all slashes except the first one by underscore
+      target="${origin[1]}${origin[2,-1]:gs,/,_,}"
+    else
+      target="root"
+    fi
 
-        echo "removing old snapshots..."
-        cutoff_date=$(date --date=$CUTOFF $DATE_FORMAT)
+    target_dir="$BACKUP_DIR/$target/$TAG/"
+    current="$BACKUP_DIR/$target/current"
 
-        for cutoff_dir in $(/usr/bin/ruby19 << RUBY
-        pattern =  /
-                    (?<date>
-                        (?<year>\d+)
-                        - 
-                        (?<month>\d+)
-                        -
-                        (?<day>\d+)
-                        _
-                        (?<hour>\d+)
-                        :
-                        (?<min>\d+)
-                        :
-                        (?<sec>\d+)
-                    )
-                    (_incomplete)?
-                    /x
+    echo "backing up $origin to $target_dir..."
 
-        c = "${cutoff_date}".match(pattern)
+    echo "removing old snapshots..."
+    cutoff_date=$(date --date=$CUTOFF $DATE_FORMAT)
 
-        Dir["${target_dir}/*"].each do |dir| 
-            if m = dir.match(pattern)
-                if m["date"] < c["date"]
-                    puts dir
-                end
-            end
+    for cutoff_dir in $(/usr/bin/ruby19 << RUBY
+      pattern =  /
+                  (?<date>
+                      (?<year>\d+)
+                      - 
+                      (?<month>\d+)
+                      -
+                      (?<day>\d+)
+                      _
+                      (?<hour>\d+)
+                      :
+                      (?<min>\d+)
+                      :
+                      (?<sec>\d+)
+                  )
+                  (_incomplete)?
+                  /x
+
+      c = "${cutoff_date}".match(pattern)
+
+      Dir["${target_dir}/*"].each do |dir| 
+        if m = dir.match(pattern)
+          if m["date"] < c["date"]
+            puts dir
+          end
         end
+      end
 RUBY)
-        do
-            echo "deleting $cutoff_dir"
-    UNLOCK
-            rm -rf --one-file-system $cutoff_dir
-    LOCK
-        done
+    do
+      echo "deleting $cutoff_dir"
+      UNLOCK
+        rm -rf --one-file-system $cutoff_dir
+      LOCK
+    done
 
-        echo "starting backup..."
-        date=$(date $DATE_FORMAT)
+    echo "starting backup..."
+    date=$(date $DATE_FORMAT)
     UNLOCK
-        mkdir -p $target_dir
-        
-        rsync -xaP --delete --delete-excluded \
-              --link-dest=$current \
-              $origin/ $target_dir/${date}_incomplete \
+      mkdir -p $target_dir
+
+      rsync -xaP --delete --delete-excluded \
+        --link-dest=$current \
+        $origin/ $target_dir/${date}_incomplete \
         \
         && mv $target_dir/${date}_incomplete $target_dir/$date \
         && rm -f $current \
         && ln -s $target_dir/$date $current
     LOCK
-        echo "backup complete"
-    done
+    echo "backup complete"
+  done
+    
+  # remove lockfile
+  UNLOCK
+    rm -f $BACKUP_DIR/rbs.lock
+  LOCK
 
-    # just to be sure
-    LOCK
+  # just to be sure
+  LOCK
 }
