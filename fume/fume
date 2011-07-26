@@ -97,7 +97,7 @@ class Fume
         context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"),
                           repeated_cxt ? :light_black : :brown),
         rating: colorize("[#{ratings}]", repeated_cxt ? :light_black : :white),
-        weight: colorize("%3dx" % target, repeated_cxt ? :light_black : :white),
+        weight: colorize("%3.0f%%" % (weight*100), repeated_cxt ? :light_black : :white),
       }
     end
 
