@@ -14,7 +14,7 @@ def main():
                  help="left screen", default="left")
     p.add_option("-r", "--right", action="store_const", const="right", dest="where", 
                  help="right screen")
-    p.add_option("-s", "--spped", action="store", dest="speed", type="int", 
+    p.add_option("-s", "--speed", action="store", dest="speed", type="float", 
                  help="increase speed by SPEED")
     p.add_option("-y", "--youtube", action="store_const", const="youtube",
                  dest="youtube", help="youtube mode")
