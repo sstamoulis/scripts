@@ -9,9 +9,7 @@ def main():
     p.add_option("-+", "--vol", action="store", dest="volume", type="int", 
                  help="increase volume by VOLUME")
     p.add_option("-l", "--left", action="store_const", const="left", dest="where", 
-                 help="left screen", default="left")
-    p.add_option("-m", "--middle", action="store_const", const="middle", dest="where", 
-                 help="left screen", default="left")
+                 help="left screen", default="right")
     p.add_option("-r", "--right", action="store_const", const="right", dest="where", 
                  help="right screen")
     p.add_option("-s", "--speed", action="store", dest="speed", type="float", 
@@ -25,14 +23,11 @@ def main():
     display = ":0.0"
     # host-specific options
     if host == "azathoth":
-        if opt.where == "middle":
+        if opt.where == "left":
             args[:0] = ["-delay", "-0.05"]
     
         # screen handling
         if opt.where == "left":
-            args[:0] = ["-xineramascreen", "0"]
-            display = ":0.1"
-        elif opt.where == "middle":
             args[:0] = ["-xineramascreen", "0"]
         elif opt.where == "right":
             args[:0] = ["-xineramascreen", "1"]
