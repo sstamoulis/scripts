@@ -2,7 +2,7 @@
 setopt extendedglob
 
 function common() {
-    amixer set Master -q 80%
+    amixer set Master -q 45%
     xset dpms force on
     killall xlock 2> /dev/null
 }
