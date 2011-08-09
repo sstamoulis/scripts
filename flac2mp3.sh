@@ -7,12 +7,18 @@ do
   echo "converting $flac..."
   OUTF=$(echo "$flac" | sed s/\.flac$/.mp3/g)
 
-  ARTIST=$(metaflac "$flac" --show-tag=ARTIST | sed s/.*=//g)
-  TITLE=$(metaflac "$flac" --show-tag=TITLE | sed s/.*=//g)
-  ALBUM=$(metaflac "$flac" --show-tag=ALBUM | sed s/.*=//g)
-  GENRE=$(metaflac "$flac" --show-tag=GENRE | sed s/.*=//g)
-  TRACKNUMBER=$(metaflac "$flac" --show-tag=TRACKNUMBER | sed s/.*=//g)
-  DATE=$(metaflac "$flac" --show-tag=DATE | sed s/.*=//g)
+  ARTIST=$(metaflac "$flac" --show-tag=ARTIST | sed "s/.*=//g")
+  echo "artist: $ARTIST"
+  TITLE=$(metaflac "$flac" --show-tag=TITLE | sed "s/.*=//g")
+  echo "title: $TITLE"
+  ALBUM=$(metaflac "$flac" --show-tag=ALBUM | sed "s/.*=//g")
+  echo "album: $ALBUM"
+  GENRE=$(metaflac "$flac" --show-tag=GENRE | sed "s/.*=//g")
+  echo "genre: $GENRE"
+  TRACKNUMBER=$(metaflac "$flac" --show-tag=TRACKNUMBER | sed "s/.*=//g")
+  echo "track: $TRACKNUMBER"
+  DATE=$(metaflac "$flac" --show-tag=DATE | sed "s/.*=//g")
+  echo "date: $DATE"
 
   flac -c -d "$flac" | lame --replaygain-fast -V0 \
     --add-id3v2 --pad-id3v2 --ignore-tag-errors --tt "$TITLE" --tn \
