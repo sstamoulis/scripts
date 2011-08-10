@@ -101,7 +101,7 @@ RUBY)
         && rm -f $current \
         && ln -s $target_dir/$date $current
     LOCK
-    echo "backup complete"
+    echo "backup complete at $(date)"
   done
     
   # remove lockfile
