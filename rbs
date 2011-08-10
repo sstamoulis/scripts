@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-BACKUP_DIR="/mnt/manji_backup"
+BACKUP_DIR="/mnt/yamantaka_backup"
 DATE_FORMAT="+%Y-%m-%d_%H:%M:%S"
 CUTOFF="3 months ago"
 TAG="manual"
