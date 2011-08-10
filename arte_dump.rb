@@ -8,7 +8,7 @@ require "open-uri"
 lang = "de"
 
 ARGV.each do |url| 
-  arte_path = "/home/amon/映画/arte"
+  arte_path = "/home/amon/テレビ/arte"
   Dir.mkdir(arte_path) if not Dir.exists? arte_path
   target = "#{arte_path}/#{File::basename(url).sub(".html", ".flv")}"
 
