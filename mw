@@ -46,7 +46,7 @@ def main():
     # youtube mode: if we're in a youtube-y folder, add a speed-up
     if opt.youtube == "youtube":
         path = os.getcwd()
-        for s in ["/home/amon/youtube", "/home/amon/テレビ/insight"]:
+        for s in ["/home/amon/youtube", "/home/amon/テレビ/lessons"]:
             if s in path:
                 args[:0] = ["-speed", "1.4"]
     
