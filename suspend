@@ -20,7 +20,6 @@ fi
 
 # moduler
 if [[ $(hostname) == "nyarlathotep" ]] then
-    #modprobe -r snd_hda_intel || exit 1
     modprobe -r iwl3945 || exit 1
 fi
 
@@ -37,19 +36,7 @@ fi
 if [[ $(hostname) == "nyarlathotep" ]] then
     # wlan
     modprobe iwl3945 || exit 1
-    #sound
-    #/etc/init.d/alsasound restart
 fi
 
 # daemons
 /etc/init.d/fcron start
-
-if [[ $(hostname) == "azathoth" ]] then
-    /etc/init.d/net.eth1 restart
-fi
-
-# wlan
-#if [[ $(hostname) == "nyarlathotep" ]] then
-   #sleep 5
-   #/home/amon/local/src/in/scripts/no_blink_wlan.sh
-#fi
