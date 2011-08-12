@@ -6,4 +6,4 @@
 mkdir -p /tmp/firefox-cache
 
 # start firefox
-/usr/bin/firefox
+/usr/bin/firefox $*
