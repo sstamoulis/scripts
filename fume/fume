@@ -20,49 +20,46 @@ class Fume
     @time = if nil? then 10..20 else time end
     @h = HighLine.new
     @log = File.open(LOG, "a")
-    @entries = []
     @times = [:today, :week, :month, :total]
-    
-    reload_todo
-    
+
     # initialize timetrap
     Timetrap::CLI.args = Getopt::Declare.new("#{Timetrap::CLI::USAGE}")
   end
 
   def reload_todo
-    @todo = Mastodon.new(File.readlines(TODO))
+    @todo          = Mastodon.new(File.readlines(TODO))
+    @contexts      = @todo.contexts
+    @entries       = get_entries.sort
+    
+    @quotas        = get_quotas
+    @targets       = get_targets
+    @global_weight = @targets.reduce(0) {|sum, (t, w)| sum+w}
+    @global_quota  = @quotas[:all]
   end
   
-  def show_todo
+  def show_todo limit=0
     puts "  -> Incoming transmission! <-"
 
     # let's grab all the necessary data
     reload_todo
-    contexts      = @todo.contexts
-    ctx_length    = length_of_longest_in contexts
-
-    quotas        = get_quotas contexts
-    global_quota  = quotas[:all]
-    targets       = get_targets contexts
-    global_weight = targets.reduce(0) {|sum, (t, w)| sum+w}
+    limit      = @entries.size if limit <= 0
+    entries    = most_urgent(limit).sort
+    ctx_length = length_of_longest_in entries.map{|e| e.contexts[0]}
     
-    todos         = @todo.todos.sort
-    @entries      = get_entries todos
-
     # let's make some sausage
-    @entries.each_with_index do |entry, i|
+    entries.each_with_index do |entry, i|
       ctx          = entry.contexts[0]
-      quota        = quotas[ctx]
-      target       = targets[ctx]
-      weight       = target.to_f / global_weight
-      repeated_cxt = (i > 0 && @entries[i-1].contexts[0] == ctx)
+      quota        = @quotas[ctx]
+      target       = @targets[ctx]
+      weight       = target.to_f / @global_weight
+      repeated_cxt = (i > 0 && entries[i-1].contexts[0] == ctx)
 
       ratios      = {}
       necessaries = {}
       @times.each do |time|
         ratio =
-          unless global_quota[time].zero?
-            (quota[time].to_f / global_quota[time])
+          unless @global_quota[time].zero?
+            (quota[time].to_f / @global_quota[time])
           else
             0.0
           end
@@ -80,10 +77,7 @@ class Fume
         ratios[time] = colorize("%3.0f%%" % [ratio * 100], color)
 
         # How many hours do I have to add to make the target?
-        # formula: r = q / g =?= w
-        #       => q+c / g+c = w
-        #       => c = (q - (g*w)) / (w-1) [thanks Wolfram Alpha!]
-        necessary  = (quota[time] - (weight * global_quota[time])) / ((weight-1)) / 3600.0
+        necessary = necessary_for(ctx, time)
         necessaries[time] = colorize((necessary.abs < 10 ?
                                       "%+4.1f" % necessary :
                                       "%+4.0f" % necessary),
@@ -93,7 +87,7 @@ class Fume
       ratings = @times.map{|t| "#{ratios[t]}#{necessaries[t]}"}.join ' | '
 
       puts "%{id} %{weight} %{rating} %{context} %{id} #{entry.text}" % {
-        id: colorize("<%02d>" % (i+1), :purple),
+        id: colorize("<%02d>" % (@entries.index(entry) + 1), :purple),
         context: colorize("%#{ctx_length+1}s" % ("@#{ctx}"),
                           repeated_cxt ? :light_black : :brown),
         rating: colorize("[#{ratings}]", repeated_cxt ? :light_black : :white),
@@ -104,12 +98,28 @@ class Fume
     # summary
     hours = []
     @times.each do |time|
-      hours << "%7.1fh" % [global_quota[time] / 3600.to_f]
+      hours << "%7.1fh" % [@global_quota[time] / 3600.to_f]
     end
 
-    puts "sum: %3dx [#{hours.join ' | '}]" % global_weight
+    puts "sum: %3dx [#{hours.join ' | '}]" % @global_weight
   end
 
+  def most_urgent limit
+    entries = get_entries
+
+    entries.sort do |a,b|
+      a_n = necessary_for(a.contexts[0], :week)
+      b_n = necessary_for(b.contexts[0], :week)
+
+      # the more hours left, the more important
+      if a_n == b_n
+        @targets[b.contexts[0]] <=> @targets[a.contexts[0]]
+      else
+        b_n <=> a_n
+      end
+    end.take limit
+  end
+  
   def length_of_longest_in(list)
     list.max do |a, b| 
       a.to_s.length <=> b.to_s.length
@@ -117,17 +127,17 @@ class Fume
   end
   
   # filter out meta entries
-  def get_entries todos
-    todos.
+  def get_entries
+    @todo.todos.
       select{|t| (get_weight t).nil?}.
       select{|t| not t.contexts.include? "broken"}.
       select{|t| not t.contexts.empty?}
   end
   
-  def get_targets contexts
+  def get_targets
     targets = {}
 
-    contexts.each do |context|
+    @contexts.each do |context|
       todos = @todo.find_context context
 
       # try to find an entry with !weight declaration or default to 1
@@ -153,7 +163,7 @@ class Fume
   end
 
 
-  def get_quotas contexts
+  def get_quotas
     intervals = {
       today: "-s '24 hours ago'",
       week:  "-s '7 days ago'",
@@ -163,7 +173,7 @@ class Fume
     quotas = {}
 
     # quota for individual contexts
-    contexts.each do |context|
+    @contexts.each do |context|
       quota = {}
       intervals.each do |time, opt|
         Timetrap::CLI.parse "#{context} #{opt}"
@@ -212,18 +222,19 @@ class Fume
 
   def question_me
     while true
-      show_todo
+      show_todo 1
       
       puts
-      print "#{keywordify("suggest", :green)} "
+      print "#{keywordify("suggestion", :green)} "
       print "#{keywordify("choose", :green)} "
       print "#{keywordify("refresh", :green)} "
+      print "#{keywordify("list all", :green)} "
       print "#{keywordify("keep on working", :green)} "
       print "#{keywordify("out", :green)} "
       print "#{keywordify("quit", :red)}"
       puts
       input = @h.ask("What do you want to do next? ") do |q|
-        q.in = %w{s c r k o q}
+        q.in = %w{s c r k o q l}
         q.character = true
       end
       
@@ -236,6 +247,10 @@ class Fume
         exit 0
       when "r"
         system "clear"
+        next
+      when "l"
+        system "clear"
+        show_todo
         next
       when "k"
         break
@@ -286,9 +301,21 @@ class Fume
     end
   end
 
+  def necessary_for context, time
+    quota  = @quotas[context]
+    target = @targets[context]
+    weight = target.to_f / @global_weight
+
+    # formula: r = q / g =?= w
+    #       => q+c / g+c = w
+    #       => c = (q - (g*w)) / (w-1) [thanks Wolfram Alpha!]
+    (quota[time] - (weight * @global_quota[time])) / ((weight-1)) / 3600.0
+  end
+    
   def suggest_entry
-    # TODO base suggestion on current quota
-    rand @entries.size
+    # just go with most urgent entry
+    e = most_urgent(1)[0]
+    work_on @entries.index(e)
   end
     
   def choose
@@ -305,7 +332,7 @@ class Fume
     if Timetrap::Timer.running?
       timetrap "out"
     end
-    
+
     item = @entries[id]
     puts "Working on #{pre_filter(item.to_s)}..."
     @log.write "#{Time.now.strftime("%s")} #{item.to_s}"
