@@ -113,7 +113,11 @@ class Fume
 
       # the more hours left, the more important
       if a_n == b_n
-        @targets[b.contexts[0]] <=> @targets[a.contexts[0]]
+        if @targets[b.contexts[0]] == @targets[a.contexts[0]]
+          rand <=> rand
+        else
+          @targets[b.contexts[0]] <=> @targets[a.contexts[0]]
+        end
       else
         b_n <=> a_n
       end
