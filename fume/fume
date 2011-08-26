@@ -107,7 +107,8 @@ class Fume
   def most_urgent limit
     entries = get_entries
 
-    entries.sort do |a,b|
+    # cache order for suggestion
+    @urgent_entries = entries.sort do |a,b|
       a_n = necessary_for(a.contexts[0], :week)
       b_n = necessary_for(b.contexts[0], :week)
 
@@ -121,7 +122,9 @@ class Fume
       else
         b_n <=> a_n
       end
-    end.take limit
+    end
+
+    @urgent_entries.take limit
   end
   
   def length_of_longest_in(list)
@@ -318,7 +321,7 @@ class Fume
     
   def suggest_entry
     # just go with most urgent entry
-    e = most_urgent(1)[0]
+    e = @urgent_entries.nil? ? most_urgent(1)[0] : @urgent_entries[0]
     work_on @entries.index(e)
   end
     
