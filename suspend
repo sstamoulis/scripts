@@ -15,6 +15,17 @@ else
     echo "going doing indefinitely..."
 fi
 
+# check if backup process is running
+source $HOME/in/scripts/rbs
+if [[ $(is_locked) == "locked" ]]; then
+  echo -n "backup is in process right now, waiting a bit"
+fi
+
+while [[ $(is_locked) == "locked" ]]; do
+  echo -n "."
+  sleep 10
+done
+
 # daemons
 /etc/init.d/fcron stop
 
