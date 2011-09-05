@@ -9,24 +9,27 @@ TARGETS=("/var" "/boot" "/" "/usr" "/usr/portage" "/home")
 alias LOCK="mount -o remount,ro $BACKUP_DIR"
 alias UNLOCK="mount -o remount,rw $BACKUP_DIR"
 
-function backup() {
+function is_locked() {
   # check for lockfile
   if [[ -f $BACKUP_DIR/rbs.lock ]]; then
-    echo "lockfile found, checking for running process..."
     # process already running?
     if [[ "$(ps -p $(cat $BACKUP_DIR/rbs.lock) | wc -l)" -gt 1 ]]; then
-      echo "process already running, aborting..."
-      exit 1
-    else
-      echo "removing orphaned lock..."
-      UNLOCK
-        rm -f $BACKUP_DIR/rbs.lock
-      LOCK
+      echo "locked"
+      return
     fi
+  fi
+  echo "unlocked"
+}
+
+function backup() {
+  if [[ $(is_locked) == "locked" ]]; then
+    echo "process already running, aborting..."
+    exit 1
   fi
 
   # create lockfile
   UNLOCK
+    rm -f $BACKUP_DIR/rbs.lock
     echo $$ > $BACKUP_DIR/rbs.lock
   LOCK
 
