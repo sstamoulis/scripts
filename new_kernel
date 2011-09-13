@@ -1,0 +1,31 @@
+#!/bin/zsh
+# Copyright muflax <mail@muflax.com>, 2011
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+if [[ $# -lt 2 ]]; then
+  echo "usage: new_kernel vmlinuz-new vmlinuz-old"
+  exit 1
+fi
+
+NEW=${1:s/vmlinuz-//}
+OLD=${2:s/vmlinuz-//}
+
+echo "new kernel version: $NEW"
+echo "old kernel version: $OLD"
+
+cd /boot
+
+echo "removing old symlinks..."
+rm -f System.map{,.old} kernel{,.old} config{,.old}
+
+echo "setting up System.map..."
+ln -s System.map-$NEW System.map
+ln -s System.map-$OLD System.map.old
+
+echo "setting up config..."
+ln -s config-$NEW config
+ln -s config-$OLD config.old
+
+echo "setting up kernel..."
+ln -s vmlinuz-$NEW kernel
+ln -s vmlinuz-$OLD kernel.old
