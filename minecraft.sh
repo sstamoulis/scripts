@@ -7,9 +7,8 @@ export GTK_IM_MODULE=""
 export QT_IM_MODULE=""
 export XMODIFIERS=@im=""
 
-# rotate textures
-#cd $HOME/.minecraft/bin
-#java -jar "Minecraft Texture Rotator.jar"
+# set wmname for proper resizing
+wmname "LG3D"
 
 # start minecraft
 JAR="$HOME/local/opt/minecraft/Minecraft.jar"
