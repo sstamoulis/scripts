@@ -12,7 +12,7 @@ if [[ $# -gt 0 ]] then
     echo "going down for $(($TIME / 60)) minutes..."
 else
     TIME=0
-    echo "going doing indefinitely..."
+    echo "going down indefinitely..."
 fi
 
 # check if backup process is running
