@@ -9,7 +9,7 @@ git clone ~/spoiler ~/spoiler-backup
 
 echo "Backuping up to $S3..."
 s3cmd sync --delete-removed ~/spoiler-backup/ $S3/spoiler/
-s3cmd sync --delete-removed ~/spoiler/mail/ $S3/spoiler/mail/
+s3cmd sync --delete-removed ~/spoiler/mail/ $S3/mail/
 
 echo "Deleting temp files..."
 rm -vrf ~/spoiler-backup
