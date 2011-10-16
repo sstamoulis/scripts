@@ -4,15 +4,15 @@
 ###############
 # error checking
 if [[ $# -gt 0 ]] then  
-    TIME=$(( $(date -d "$*" +%s) - $(date +%s)))
-    if [[ $TIME -lt 0 || $TIME -gt $(( 24 * 60 * 60 )) ]] then
-        echo "time $TIME seems invalid..."
-        exit 1
-    fi
-    echo "going down for $(($TIME / 60)) minutes..."
+  TIME=$(( $(date -d "$*" +%s) - $(date +%s)))
+  if [[ $TIME -lt 0 || $TIME -gt $(( 24 * 60 * 60 )) ]] then
+    echo "time $TIME seems invalid..."
+    exit 1
+  fi
+  echo "going down for $(($TIME / 60)) minutes..."
 else
-    TIME=0
-    echo "going down indefinitely..."
+  TIME=0
+  echo "going down indefinitely..."
 fi
 
 # check if backup process is running
@@ -31,22 +31,29 @@ done
 
 # moduler
 if [[ $(hostname) == "nyarlathotep" ]] then
-    modprobe -r iwl3945 || exit 1
+  modprobe -r iwl3945 || exit 1
 fi
 
 # actual suspend
 if [[ $TIME -gt 0 ]] then
-    rtcwake -m mem -s $TIME
+  rtcwake -m mem -s $TIME
 else
+  if [[ $(hostname) == "azathoth" ]] then
+    # azathoth doesn't support suspend-to-ram, use s2disk instead
+    swapon /dev/mapper/resume_swap
+    s2disk
+    swapoff /dev/mapper/resume_swap
+  else
     echo "mem" > /sys/power/state
+  fi
 fi
 
 # coming back...
 ################
 
 if [[ $(hostname) == "nyarlathotep" ]] then
-    # wlan
-    modprobe iwl3945 || exit 1
+  # wlan
+  modprobe iwl3945 || exit 1
 fi
 
 # daemons
