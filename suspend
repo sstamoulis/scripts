@@ -40,9 +40,13 @@ if [[ $TIME -gt 0 ]] then
 else
   if [[ $(hostname) == "azathoth" ]] then
     # azathoth doesn't support suspend-to-ram, use s2disk instead
-    swapon /dev/mapper/resume_swap
+    swapon -v /dev/mapper/resume_swap
+    sleep 3
     s2disk
-    swapoff /dev/mapper/resume_swap
+    
+    echo "welcome back..."
+    sleep 10
+    swapoff -v /dev/mapper/resume_swap
   else
     echo "mem" > /sys/power/state
   fi
