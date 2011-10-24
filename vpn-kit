@@ -6,3 +6,4 @@ echo "setting up connection..."
 jnc -n kit
 echo "done?"; read
 jnc stop
+sudo /etc/init.d/net.eth0 restart
