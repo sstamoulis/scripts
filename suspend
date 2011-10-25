@@ -26,6 +26,9 @@ while [[ $(is_locked) == "locked" ]]; do
   sleep 10
 done
 
+# sync drives in case of crash
+sync
+
 # daemons
 /etc/init.d/fcron stop
 
@@ -38,18 +41,7 @@ fi
 if [[ $TIME -gt 0 ]] then
   rtcwake -m mem -s $TIME
 else
-  if [[ $(hostname) == "azathoth" ]] then
-    # azathoth doesn't support suspend-to-ram, use s2disk instead
-    swapon -v /dev/mapper/resume_swap
-    sleep 3
-    s2disk
-    
-    echo "welcome back..."
-    sleep 10
-    swapoff -v /dev/mapper/resume_swap
-  else
-    echo "mem" > /sys/power/state
-  fi
+  s2ram -f
 fi
 
 # coming back...
