@@ -1,8 +1,5 @@
 #!/bin/sh
-
-# Sample /init script to be used on an initfs.
-
-# Set the PATH
+# vars
 export PATH=/bin:/sbin
 
 echo "initfs: Starting..." 2>&1
@@ -12,9 +9,10 @@ echo "initfs: Mounting /proc and /sys..." 2>&1
 mount -n -t proc none /proc
 mount -n -t sysfs none /sys
 
-/bin/udevd --daemon
-/bin/udevadm trigger
-/bin/udevadm settle --timeout=60
+# dynamic devices
+# mdev is faster than udev and doesn't need updates
+echo /bin/mdev > /proc/sys/kernel/hotplug
+mdev -s
 
 # Get the root volume name from the kernel command line. In order for
 # this to work correctly, "realroot=/dev/vg/lv" needs to be passed 
@@ -29,10 +27,6 @@ do
 		;;
 	esac
 done
-
-# Activate LVM volumes.
-#echo "initfs: Activating LVM volumes..." 2>&1
-#lvm vgchange -a y 2>&1
 
 # Load keymap
 loadkeys /etc/neo.map
@@ -53,15 +47,24 @@ fi
 echo "initfs: Mounting $ROOTVOL readonly..." 2>&1
 mount -n -t ext4 ${ROOTVOL} /newroot
 
-export PATH=/newroot/bin:/newroot/sbin:$PATH
+# resume swap
+#echo "initfs: Loading swap..." 2>&1
+#cryptsetup -d /newroot/keys/resume_swap.key luksOpen /dev/sda4 resume_swap
+#echo "initfs: Attempting resume..." 2>&1
+#resume
+#echo "initfs: Failed, booting normally..." 2>&1
+#sleep 1
+#cryptsetup luksClose resume_swap
 
-killall udevd
+# prepare booting of new root
+export PATH=/newroot/bin:/newroot/sbin:$PATH
 
 # Unmount /sys and /proc
 echo "initfs: Unmounting /sys and /proc..." 2>&1
 umount /sys
 umount /proc
 
+# switch to new root
 cd /newroot
 pivot_root . boot
 
