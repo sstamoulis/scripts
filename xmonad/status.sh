@@ -15,7 +15,7 @@ export last_mod_time=0
 
 # processes with >= 30% cpu load
 cpu_hogs() {
-  ps -eo pcpu,ucmd --sort -pcpu | tail -n +2 | while read proc
+  ps -eo pcpu,ucmd --sort -pcpu | grep -vP "migration/\d+" | tail -n +2 | while read proc
   do
     if [[ $proc[(w)1] -ge 30.0 ]] then
       echo -n " $proc[(w)1] ${${proc[(w)2]}[1,10]}"
