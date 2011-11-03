@@ -6,8 +6,8 @@
 
 # global variables
 hostname=$(hostname)
-timetrap_db=$(ruby -ryaml << EOF
-  c = YAML.load_file(File.join(ENV['HOME'], '.timetrap.yml'))
+fumetrap_db=$(ruby -ryaml << EOF
+  c = YAML.load_file(File.join(ENV['HOME'], '.fumetrap.yml'))
   puts c['database_file']
 EOF
 )
@@ -59,9 +59,9 @@ status() {
   dzen_number+=1
 }
 
-# watches timetrap database for changes to prevent unnecessary execs
-watch_timetrap() {
-  mod_time=$(stat -c "%Y" $timetrap_db)
+# watches fumetrap database for changes to prevent unnecessary execs
+watch_fumetrap() {
+  mod_time=$(stat -c "%Y" $fumetrap_db)
   now=$(date "+%s")
   
   if [[ $mod_time -gt $last_mod_time ]]; then
@@ -77,7 +77,7 @@ if [[ $1 != "debug" ]]; then
   while true
   do 
     { status; sleep 0.9s } &
-    watch_timetrap # note: this can't be &-ed as it writes a global variable
+    watch_fumetrap # note: this can't be &-ed as it writes a global variable
     wait
   done | dmplex
 else
