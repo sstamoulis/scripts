@@ -59,10 +59,12 @@ Hosts = [
         ]
 
 # skip this stuff
-Extensions = %w(iso exe gz xz rar 7z tar bin zip jar flv mp4 avi webm mkv torrent pdf)
+Extensions = %w(iso exe gz xz bz2 rar 7z tar bin zip jar flv mp4 avi webm mkv torrent pdf mp3 ogg wmv mobi djvu epub)
 FileLimit = "4M"
 
 def filter_urls urls
+  puts "filtering urls..."
+
   # remove trailing slashes
   urls.map!{|u| u.chomp.sub(%r{/$}, "")}
 
@@ -75,6 +77,9 @@ def filter_urls urls
   # remove useless hosts
   Hosts.each{|host| urls.delete_if{|u| u.match host}}
 
+  # remove all file extensions (wget doesn't catch them
+  Extensions.each{|ext| urls.delete_if{|u| u.match /\.#{ext}\b/}}
+  
   # shuffle them to avoid polling the same server
   urls.shuffle!
 
@@ -87,7 +92,7 @@ puts "mirroring into #{Target}..."
 Dir.chdir Target
 
 exts = Extensions.map{|e| ".#{e}"}.join(",")
-opts = "--no-verbose --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=30"
+opts = "--no-verbose --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=30 --ignore-case --convert-links"
 
 Parallel.each_with_index(urls, :in_threads=>Parallel_num) do |url, i|
   puts "backing up (#{i}/#{urls.size}): #{url}"
@@ -98,4 +103,4 @@ end
 system "hardlink -t #{Target}"
 
 # remove large files
-system "find #{Target} -size '+4M' -delete"
+system "find #{Target} -size '+#{FileLimit}' -delete"
