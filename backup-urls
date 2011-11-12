@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+# Copyright muflax <mail@muflax.com>, 2011
+# License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
+
+require "parallel"
+
+# where to store the backup?
+Target = File.join(Dir.home, "www")
+
+# number of parallel wgets
+Parallel_num = 20
+
+# filtered hosts
+Hosts = [
+         # chans
+         /\d+chan\.\w+/,
+
+         # video sites
+         /youtube\.com/,
+         /beeq\.com/,
+         /vimeo\.com/,
+         /motherless\.com/,
+         /mypinktube\.com/,
+         /thedailyshow\.com/,
+         
+         # search sites
+         /google\.com\/search/,
+         /\/search\.php/,
+         /wikipedia.*search=\w+/,
+         /findtubes\.com/,
+         /isohunt\.com/,
+         /jpopsuki\.eu/,
+         /piratebay\.org/,
+         /library\.nu\/search/,
+
+         # hosting sites
+         /rapidshare\.com/,
+         /megaupload\.com/,
+
+         # random sites
+         /google\.\w+/,
+         /github\.com/,
+
+         # archives
+         /archive\.org/,
+         /webcache\.googleusercontent\.com/,
+         
+         # session ids
+         /sid=\w+/,
+        
+         # local IPs
+         /127\.0\.0\.1/,
+         /192\.\d+\.\d+\.\d+/,
+         /localhost/,
+
+         # admin pages
+         /blog\.muflax\.com\/wp-admin/,
+        ]
+
+# skip this stuff
+Extensions = %w(iso exe gz xz rar 7z tar bin zip jar flv mp4 avi webm mkv torrent pdf)
+FileLimit = "4M"
+
+def filter_urls urls
+  # remove trailing slashes
+  urls.map!{|u| u.chomp.sub(%r{/$}, "")}
+
+  # remove duplicates
+  urls.uniq!
+
+  # remove local files
+  urls.delete_if{|u| u.match /^file:/}
+
+  # remove useless hosts
+  Hosts.each{|host| urls.delete_if{|u| u.match host}}
+
+  # shuffle them to avoid polling the same server
+  urls.shuffle!
+
+  urls
+end
+
+urls = filter_urls ARGF.to_a
+
+puts "mirroring into #{Target}..."
+Dir.chdir Target
+
+exts = Extensions.map{|e| ".#{e}"}.join(",")
+opts = "--no-verbose --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=30"
+
+Parallel.each_with_index(urls, :in_threads=>Parallel_num) do |url, i|
+  puts "backing up (#{i}/#{urls.size}): #{url}"
+  system "wget #{opts} #{url}"
+end
+
+# remove duplicates
+system "hardlink -t #{Target}"
+
+# remove large files
+system "find #{Target} -size '+4M' -delete"
