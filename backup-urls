@@ -17,30 +17,30 @@ Hosts = [
          /\d+chan\.\w+/,
 
          # video sites
-         /youtube\.com/,
          /beeq\.com/,
-         /vimeo\.com/,
          /motherless\.com/,
          /mypinktube\.com/,
          /thedailyshow\.com/,
+         /vimeo\.com/,
+         /youtube\.com/,
          
          # search sites
-         /google\.com\/search/,
          /\/search\.php/,
-         /wikipedia.*search=\w+/,
          /findtubes\.com/,
+         /google\.com\/search/,
          /isohunt\.com/,
          /jpopsuki\.eu/,
-         /piratebay\.org/,
          /library\.nu\/search/,
+         /piratebay\.org/,
+         /wikipedia.*search=\w+/,
 
          # hosting sites
-         /rapidshare\.com/,
          /megaupload\.com/,
+         /rapidshare\.com/,
 
          # random sites
-         /google\.\w+/,
          /github\.com/,
+         /google\.\w+/,
 
          # archives
          /archive\.org/,
@@ -59,7 +59,43 @@ Hosts = [
         ]
 
 # skip this stuff
-Extensions = %w(iso exe gz xz bz2 rar 7z tar bin zip jar flv mp4 avi webm mkv torrent pdf mp3 ogg wmv mobi djvu epub)
+Extensions = [
+              # execs
+              "bin",
+              "exe",
+              "iso",
+              "jar",
+
+              # archives
+              "7z",
+              "bz2",
+              "gz",
+              "rar",
+              "tar",
+              "xz",
+              "zip",
+
+              # video / audio
+              "avi",
+              "flv",
+              "mkv",
+              "mov",
+              "mp3",
+              "mp4",
+              "ogg",
+              "swf"
+              "webm",
+              "wmv",
+
+              # docs
+              "djvu",
+              "epub",
+              "mobi",
+              "pdf",
+
+              # misc
+              "torrent",
+             ]
 FileLimit = "4M"
 
 def filter_urls urls
