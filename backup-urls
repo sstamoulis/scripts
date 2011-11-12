@@ -96,6 +96,8 @@ Extensions = [
               # misc
               "torrent",
              ]
+
+# delete files over that size
 FileLimit = "4M"
 
 def filter_urls urls
