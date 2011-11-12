@@ -83,7 +83,7 @@ Extensions = [
               "mp3",
               "mp4",
               "ogg",
-              "swf"
+              "swf",
               "webm",
               "wmv",
 
