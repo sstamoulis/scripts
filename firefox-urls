@@ -2,7 +2,7 @@
 # Copyright muflax <mail@muflax.com>, 2011
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
-limit="1.5 months"
+limit="10 days"
 
 places=$(find ~/.mozilla/ -name "places.sqlite" | head -1)
 
