@@ -6,7 +6,7 @@
 require "parallel"
 
 # where to store the backup?
-Target = File.join(Dir.home, "www")
+Target = File.join(Dir.home, "spoiler/archive/www")
 
 # number of parallel wgets
 Parallel_num = 20
@@ -22,6 +22,7 @@ Hosts = [
          /mypinktube\.com/,
          /thedailyshow\.com/,
          /vimeo\.com/,
+         /xhamster\.com/,
          /youtube\.com/,
          
          # search sites
@@ -30,23 +31,31 @@ Hosts = [
          /google\.com\/search/,
          /isohunt\.com/,
          /jpopsuki\.eu/,
+         /lesswrong\.com\/search/,
          /library\.nu\/search/,
          /piratebay\.org/,
+         /search(\?q)?=/,
+         /search\?/,
          /wikipedia.*search=\w+/,
-
+         
          # hosting sites
          /megaupload\.com/,
          /rapidshare\.com/,
+         /warez-bb\.org/,
 
-         # random sites
+         # random sites without useful content
+         /amazon\.\w+/,
          /github\.com/,
          /google\.\w+/,
+         /imdb\.\w+/,
+         /librarything\.com/,
 
          # archives
          /archive\.org/,
          /webcache\.googleusercontent\.com/,
          
          # session ids
+         /session(_?)(id)?=\w+/,
          /sid=\w+/,
         
          # local IPs
@@ -56,6 +65,22 @@ Hosts = [
 
          # admin pages
          /blog\.muflax\.com\/wp-admin/,
+
+         # wikipedia
+         /wikipedia\.\w+/,
+
+         # short URL sites
+         /bit\.ly/,
+         /t\.co/,
+
+         # reddit-y sites (way too slow and huge)
+         /(lesswrong|reddit)\.com/,
+
+         # beeminder (I also save my data locally)
+         /beeminder\.com/,
+
+         # twitter (also locally)
+         /twitter\.com/,
         ]
 
 # skip this stuff
@@ -100,6 +125,9 @@ Extensions = [
 # delete files over that size
 FileLimit = "4M"
 
+# debug mode?
+Debug = false
+
 def filter_urls urls
   puts "filtering urls..."
 
@@ -117,9 +145,14 @@ def filter_urls urls
 
   # remove all file extensions (wget doesn't catch them
   Extensions.each{|ext| urls.delete_if{|u| u.match /\.#{ext}\b/}}
-  
-  # shuffle them to avoid polling the same server
-  urls.shuffle!
+
+  if Debug
+    # make debug mode deterministic
+    urls.sort! 
+  else
+    # shuffle them to avoid polling the same server
+    urls.shuffle!
+  end
 
   urls
 end
@@ -130,15 +163,15 @@ puts "mirroring into #{Target}..."
 Dir.chdir Target
 
 exts = Extensions.map{|e| ".#{e}"}.join(",")
-opts = "--no-verbose --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=30 --ignore-case --convert-links"
+opts = "--quiet --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=30 --ignore-case --convert-links"
 
 Parallel.each_with_index(urls, :in_threads=>Parallel_num) do |url, i|
   puts "backing up (#{i}/#{urls.size}): #{url}"
-  system "wget #{opts} #{url}"
+  system "wget #{opts} '#{url}'" unless Debug
 end
 
 # remove duplicates
-system "hardlink -t #{Target}"
+system "nice hardlink -t #{Target}" unless Debug
 
 # remove large files
-system "find #{Target} -size '+#{FileLimit}' -delete"
+system "find #{Target} -size '+#{FileLimit}' -delete" unless Debug
