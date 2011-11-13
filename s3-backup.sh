@@ -7,7 +7,7 @@ S3=s3://backup.muflax.com
 echo "Compressing ~/spoiler..."
 mkdir -p $HOME/spoiler-backup
 cd $HOME/spoiler-backup
-tar -vczf spoiler.tar.gz ~/spoiler             
+tar -vczf spoiler.tar.gz ~/spoiler --exclude ~/spoiler/archive/www
 split --line-bytes=100M spoiler.tar.gz spoiler.tar.gz_
 rm spoiler.tar.gz
 
