@@ -135,7 +135,7 @@ Extensions = [
 FileLimit = "4M"
 
 # debug mode?
-Debug = true
+Debug = false
 
 def filter_urls urls
   puts "filtering urls..."
