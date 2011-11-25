@@ -9,7 +9,6 @@ if [ -e $JDDIR ]; then
     wget $JDINSTALLER
   fi
   echo "starting..."
-  wmname "LG3D"
   java -Xmx512m -jar jdupdate.jar
 else
   echo "$JDDIR doesn't exist..."

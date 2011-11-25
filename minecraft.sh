@@ -7,9 +7,6 @@ export GTK_IM_MODULE=""
 export QT_IM_MODULE=""
 export XMODIFIERS=@im=""
 
-# set wmname for proper resizing
-wmname "LG3D"
-
 # start minecraft
 JAR="$HOME/local/opt/minecraft/Minecraft.jar"
 java -Xmx2048M -Xms2048M -cp $JAR net.minecraft.LauncherFrame
