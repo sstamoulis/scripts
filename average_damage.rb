@@ -3,12 +3,13 @@
 # Copyright muflax <mail@muflax.com>, 2011
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
-input = ARGV.join " "
+require "range_math"
 
-if m = input.match(/(?<num> \d+) \s* d \s* (?<die> \d+) \s* ((?<sign> \+|-) \s* (?<mod> \d+))?/x)
-  avg = eval "#{m[:num]} * ((#{m[:die]}+1)/2.0)"
-  unless m[:sign].nil? or m[:mod].nil?
-    avg += eval "#{m[:sign]}#{m[:mod]}"
-  end
-  puts avg
+def dice(num, sides)
+  num * (1..sides)   
 end
+
+input = ARGV.join " "
+input.gsub!(/(\d+)d(\d+)/, '(dice(\1, \2))')
+damage = eval(input)
+puts "range: #{damage}, average: #{damage.average}"
