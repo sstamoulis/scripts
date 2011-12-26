@@ -1,70 +1,98 @@
-#!/usr/bin/env python3
-# Copyright muflax <mail@muflax.com>, 2010
+#!/usr/bin/env ruby
+# coding: utf-8
+# Copyright muflax <mail@muflax.com>, 2011
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
-import optparse, os, subprocess, sys, platform
+require "optparse"
+require "socket"
 
-def main():
-    p = optparse.OptionParser()
-    p.add_option("-+", "--vol", action="store", dest="volume", type="int", 
-                 help="increase volume by VOLUME")
-    p.add_option("-l", "--left", action="store_const", const="left", dest="where", 
-                 help="left screen", default="right")
-    p.add_option("-r", "--right", action="store_const", const="right", dest="where", 
-                 help="right screen")
-    p.add_option("-s", "--speed", action="store", dest="speed", type="float", 
-                 help="increase speed by SPEED")
-    p.add_option("-y", "--youtube", action="store_const", const="youtube",
-                 dest="youtube", help="youtube mode")
+# defaults
+options = {
+  volume: 0,
+  position: :right,
+  speed: 1.0,
+}
+  
+# vars
+host    = Socket.gethostname
+display = ":0.0"
+cmd     = ["mplayer"]
+pwd     = Dir.pwd
 
-    opt, args = p.parse_args()
+# check if there's a .mw file in the current path and if so, add it as options
+if File.exists? ".mw"
+  File.open(".mw", "r").each do |line|
+    ARGV << line.chomp
+  end
+end
 
-    host = platform.node()
-    display = ":0.0"
-    # host-specific options
-    if host == "azathoth":
-        if opt.where == "left":
-            args[:0] = ["-delay", "-0.05"]
+# parse options
+begin
+  OptionParser.new do |opts|
+    opts.banner = "usage: mw [options]"
+
+    opts.on("-+", "--vol=VOL", Integer, "increase volume by VOL") do |v|
+      options[:volume] = v
+    end
+
+    opts.on("-l", "--left", "play on left screen") do |l|
+      options[:position] = :left
+    end
+
+    opts.on("-r", "--right", "play on right screen") do |r|
+      options[:position] = :right
+    end
     
-        # screen handling
-        if opt.where == "left":
-            args[:0] = ["-xineramascreen", "0"]
-        elif opt.where == "right":
-            args[:0] = ["-xineramascreen", "1"]
-        else:
-            optparse.error("wtf is '{}'?!".format(opt.where))
+    opts.on("-s", "--speed SPEED", Float, "increase speed by SPEED") do |s|
+      options[:speed] = s
+    end
 
-    # audio filter
-    args[:0] = ["-af-add", "scaletempo"]
-    if opt.volume:
-        args[:0] = ["-af-add", "volume={}".format(opt.volume)]
-    
-    # speed increase
-    if opt.speed:
-        args[:0] = ["-speed", "{}".format(opt.speed)]
+    opts.on("-y", "--youtube", "youtube mode") do |y|
+      [
+       "/home/amon/youtube",
+       "/home/amon/テレビ/lessons"
+      ].each do |dir|
+        if pwd.include? dir
+          options[:speed] = 1.4
+          break
+        end
+      end
+    end
+  end.parse!
+rescue OptionParser::InvalidOption => e
+  cmd << e.to_s.sub(/^invalid option:\s+/, "")
+end
 
-    # youtube mode: if we're in a youtube-y folder, add a speed-up
-    if opt.youtube == "youtube":
-        path = os.getcwd()
-        for s in ["/home/amon/youtube", "/home/amon/テレビ/lessons"]:
-            if s in path:
-                args[:0] = ["-speed", "1.4"]
-    
-    # azathoth needs a wrapper, though
-    cmd = ["mplayer"]
-    os.environ["DISPLAY"] =  display
-    if host == "azathoth" and opt.where == "right":
-        try:
-            os.system("nvidia-settings -a XVideoSyncToDisplay=DFP-1 >/dev/null")
-            ret = subprocess.call(cmd + args, env=os.environ)
-        except Exception as e:
-            print(e)
-        finally:
-            os.system("nvidia-settings -a XVideoSyncToDisplay=DFP-0 >/dev/null")
-    else:
-        ret = subprocess.call(cmd + args, env=os.environ)
+# host-specific options
+case host
+when "azathoth"
+  # monitor lags a bit
+  if options[:position] == :left
+    cmd << "-delay -0.05"
+  end
 
-    sys.exit(ret)
+  # screen handling
+  case options[:position]
+  when :left
+    cmd << "-xineramascreen 0"
+  when :right
+    cmd << "-xineramascreen 1"
+  end
+end
 
-if __name__ == "__main__":
-    main()
+# audio filter
+cmd << "-af-add scaletempo"
+if options[:volume].nonzero?
+  cmd << "-af-add volume=#{options[:volume]}"
+end
+
+# speed increase
+if options[:speed] != 1.0
+  cmd << "-speed #{options[:speed]}"
+end
+
+# begin execution
+ENV["DISPLAY"] = display
+mplayer = (cmd + ARGV).join(" ")
+puts "running '#{mplayer}'..."
+system mplayer
