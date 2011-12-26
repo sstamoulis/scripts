@@ -5,6 +5,7 @@
 
 require "optparse"
 require "socket"
+require "shellwords"
 
 # defaults
 options = {
@@ -93,6 +94,6 @@ end
 
 # begin execution
 ENV["DISPLAY"] = display
-mplayer = (cmd + ARGV).join(" ")
+mplayer = cmd.join(" ") + " " + Shellwords.shelljoin(ARGV)
 puts "running '#{mplayer}'..."
 system mplayer
