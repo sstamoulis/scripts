@@ -175,7 +175,7 @@ exts = Extensions.map{|e| ".#{e}"}.join(",")
 opts = "--quiet --continue --page-requisites -e robots=off --timestamping --reject #{exts} --timeout=15 --ignore-case --convert-links"
 
 Parallel.each_with_index(urls, :in_threads=>Parallel_num) do |url, i|
-  puts "backing up (#{i}/#{urls.size}): #{url}"
+  puts "backing up (#{i+1}/#{urls.size}): #{url}"
   system "wget #{opts} '#{url}'" unless Debug
 end
 
