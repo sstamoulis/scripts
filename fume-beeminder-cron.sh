@@ -3,8 +3,7 @@
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
 # initialize PATH and so on
-export PATH="$($HOME/in/scripts/extend_path.sh):$PATH"
-export GEM_HOME="$HOME/local/gems"
-export GEM_PATH="$GEM_HOME"
-export PATH="$GEM_HOME/bin:$PATH"
+source ~/.zsh/env.sh
+source ~/.zsh/path.sh
+
 fume-beeminder
