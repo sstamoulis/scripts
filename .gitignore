@@ -1,2 +1,5 @@
 *.o
 *.swp
+
+# login data
+google_web_history-cron.sh
