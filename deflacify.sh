@@ -5,7 +5,7 @@
 for flac in **/*.flac
 do
   echo "converting $flac..."
-  OUTF=$(echo "$flac" | sed s/\.flac$/.mp3/g)
+  OUTF=$(echo "$flac" | sed s/\.flac$/.ogg/g)
 
   ARTIST=$(metaflac "$flac" --show-tag=ARTIST | sed "s/.*=//g")
   echo "artist: $ARTIST"
@@ -20,10 +20,15 @@ do
   DATE=$(metaflac "$flac" --show-tag=DATE | sed "s/.*=//g")
   echo "date: $DATE"
 
-  flac -c -d "$flac" | lame --replaygain-fast -V0 \
-    --add-id3v2 --pad-id3v2 --ignore-tag-errors --tt "$TITLE" --tn \
-    "${TRACKNUMBER:-0}" --ta "$ARTIST" --tl "$ALBUM" --ty "$DATE" --tg \
-    "${GENRE:-12}" - "$OUTF"
+  flac -c -d "$flac" | oggenc \
+    -q 9 \
+    --title "$TITLE" \
+    --tracknum "${TRACKNUMBER:-0}" \
+    --artist "$ARTIST" \
+    --album "$ALBUM" \
+    --date "$DATE" \
+    --genre "${GENRE:-12}" \
+    -o "$OUTF" -
 
   RESULT=$?
   if [ "$1" ] && [ "$1" = "-d" ] && [ $RESULT -eq 0 ]; then
