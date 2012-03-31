@@ -17,6 +17,7 @@ rm spoiler.tar.gz
 
 # split for easier transfer
 split --line-bytes=100M spoiler.tar.gz.gpg spoiler.tar.gz.gpg_
+rm spoiler.tar.gz.gpg
 
 echo "Backuping up to $S3..."
 s3cmd del -r $S3/spoiler-backup
