@@ -9,7 +9,7 @@ mkdir -p $HOME/spoiler-backup
 cd $HOME/spoiler-backup
 
 # compress
-tar -vczf spoiler.tar.gz ~/spoiler --exclude ~/spoiler/archive/www
+tar -vczf spoiler.tar.gz ~/spoiler
 
 # encrypt
 gpg -r muflax -cev --batch --passphrase-file ~/.s3_passphrase spoiler.tar.gz
