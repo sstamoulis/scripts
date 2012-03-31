@@ -31,8 +31,7 @@ do
     -o "$OUTF" -
 
   RESULT=$?
-  if [ "$1" ] && [ "$1" = "-d" ] && [ $RESULT -eq 0 ]; then
+  if [ $RESULT -eq 0 ]; then
     rm "$flac"
   fi
-
 done
