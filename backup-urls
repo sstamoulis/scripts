@@ -67,8 +67,8 @@ Hosts = [
          /192\.\d+\.\d+\.\d+/,
          /localhost/,
 
-         # admin pages
-         /blog\.muflax\.com\/wp-admin/,
+         # my own stuff
+         /muflax\.com/,
 
          # wikipedia
          /wiki(p|m)edia\.\w+/,
