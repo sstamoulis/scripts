@@ -15,18 +15,18 @@ H="13"
 
 #FIXME: stupid, read it out somehow :)
 case $HOSTNAME in
-    azathoth)
-        WIDTH="1680"
-        HEIGHT="1050"
-        ;;
-    nyarlathotep)
-        WIDTH="1440"
-        HEIGHT="900"
-        ;;
-    *)
-        echo "unknown host: aborting"
-        exit 1
-        ;;
+  azathoth)
+    WIDTH="1920"
+    HEIGHT="1200"
+    ;;
+  nyarlathotep)
+    WIDTH="1440"
+    HEIGHT="900"
+    ;;
+  *)
+    echo "unknown host: aborting"
+    exit 1
+    ;;
 esac
 
 DZEN="dzen2 -p -fg '$FG' -bg '$BG' -fn '$FN' -e '$E' -h '$H' -y '$(($HEIGHT - $H))'" 
