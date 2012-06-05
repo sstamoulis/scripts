@@ -68,7 +68,7 @@ end
 case host
 when "azathoth"
   # monitor lags a bit
-  if options[:position] == :left
+  if options[:position] == :right
     cmd << "-delay -0.05"
   end
 
