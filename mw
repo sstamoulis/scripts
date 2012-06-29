@@ -44,10 +44,15 @@ begin
       options[:position] = :right
     end
     
-    opts.on("-s", "--speed SPEED", Float, "increase speed by SPEED") do |s|
+    opts.on("-x", "--speed SPEED", Float, "increase speed by SPEED") do |s|
       options[:speed] = s
     end
 
+    opts.on("-s", "--sub SUBTITLE", String, "use SUBTITLE file") do |s|
+      options[:subtitle] = s
+    end
+
+    
     opts.on("-y", "--youtube", "youtube mode") do |y|
       [
        "/home/amon/youtube",
@@ -90,6 +95,11 @@ end
 # speed increase
 if options[:speed] != 1.0
   cmd << "-speed #{options[:speed]}"
+end
+
+# subtitle
+if options[:subtitle]
+  cmd << "-sub #{options[:subtitle]}"
 end
 
 # begin execution
