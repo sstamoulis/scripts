@@ -4,6 +4,9 @@
 
 # Simple Twitter backup script
 
+source ~/.zsh/env.sh
+source ~/.zsh/path.sh
+
 DAY=$(date +'%Y-%m-%d')
 DIR="/home/amon/spoiler/archive/twitter/"
 
@@ -23,3 +26,6 @@ echo "Backing up followings..."
 twitter followings --csv > $DIR/followings-$DAY.csv
 echo "Backing up followers..."
 twitter followers --csv > $DIR/followers-$DAY.csv
+
+echo "Compressing backups..."
+gzip -f -9 $DIR/*.csv
