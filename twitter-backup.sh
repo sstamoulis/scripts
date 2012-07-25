@@ -8,24 +8,33 @@ source ~/.zsh/env.sh
 source ~/.zsh/path.sh
 
 DAY=$(date +'%Y-%m-%d')
-DIR="/home/amon/spoiler/archive/twitter/"
+DIR="/home/amon/spoiler/archive/twitter/$DAY/"
 
 mkdir -p $DIR
 
 echo "Backing up tweets..."
-twitter timeline @muflax --csv --number 3000 > $DIR/tweets-$DAY.csv
+twitter timeline @muflax --csv --number 3000 > $DIR/tweets.csv
+
 echo "Backing up retweets..."
-twitter retweets --csv --number 3000 > $DIR/retweets-$DAY.csv
+twitter retweets --csv --number 3000 > $DIR/retweets.csv
 echo "Backing up favorites..."
-twitter favorites --csv --number 3000 > $DIR/favorites-$DAY.csv
+twitter favorites --csv --number 3000 > $DIR/favorites.csv
+
 echo "Backing up DM received..."
-twitter direct_messages --csv --number 3000 > $DIR/dm_received-$DAY.csv
+twitter direct_messages --csv --number 3000 > $DIR/dm_received.csv
 echo "Backing up DM sent..."
-twitter direct_messages_sent --csv --number 3000 > $DIR/dm_sent-$DAY.csv
+twitter direct_messages_sent --csv --number 3000 > $DIR/dm_sent.csv
+
 echo "Backing up followings..."
-twitter followings --csv > $DIR/followings-$DAY.csv
+twitter followings --csv > $DIR/followings.csv
 echo "Backing up followers..."
-twitter followers --csv > $DIR/followers-$DAY.csv
+twitter followers --csv > $DIR/followers.csv
+
+echo "Backuping up tweets of followings / followings..."
+for f in $(sort -u <(twitter followings) <(twitter followers)); do
+  echo "$f..."
+  twitter timeline "@$f" --csv --number 3000 > $DIR/tweets-$f.csv
+done
 
 echo "Compressing backups..."
 gzip -f -9 $DIR/*.csv
