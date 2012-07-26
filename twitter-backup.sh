@@ -30,11 +30,12 @@ twitter followings --csv > $DIR/followings.csv
 echo "Backing up followers..."
 twitter followers --csv > $DIR/followers.csv
 
-echo "Backuping up tweets of followings / followings..."
-for f in $(sort -u <(twitter followings) <(twitter followers)); do
-  echo "$f..."
-  twitter timeline "@$f" --csv --number 3000 > $DIR/tweets-$f.csv
-done
+# TODO deal with rate limit
+# echo "Backuping up tweets of followings / followings..."
+# for f in $(sort -u <(twitter followings) <(twitter followers)); do
+#   echo "$f..."
+#   twitter timeline "@$f" --csv --number 3000 > $DIR/tweets-$f.csv
+# done
 
 echo "Compressing backups..."
 gzip -f -9 $DIR/*.csv
