@@ -99,7 +99,7 @@ end
 
 # subtitle
 if options[:subtitle]
-  cmd << "-sub #{options[:subtitle]}"
+  cmd << "-sub '#{options[:subtitle]}'"
 end
 
 # begin execution
