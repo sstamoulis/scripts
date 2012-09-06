@@ -2,4 +2,5 @@
 *.swp
 
 # login data
+beemind-fitocracy-cron.sh
 google_web_history-cron.sh
