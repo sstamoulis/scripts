@@ -50,7 +50,7 @@ if !(logged_in.body.include? "error")
   config     = YAML.load File.open("#{Dir.home}/.beeminderrc")
   bee        = Beeminder::User.new config["account"], config["token"]
   fit_goal   = bee.goal opts[:goal]
-  last_score = fit_goal.datapoints.max_by{|x| x.timestamp}.value.to_i
+  last_score = fit_goal.datapoints.max_by{|x| x.value}.value.to_i
 
   if score > last_score
     bee.send opts[:goal], score, "automatic update (+#{score - last_score})"
