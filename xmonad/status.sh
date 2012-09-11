@@ -54,8 +54,9 @@ status() {
   dzen_number+=1
 
   # current date
-  #year=$(($(date "+%y") + 12))
-  echo "$dzen_number $(date "+%d日(%a) %H時%M分%S秒")"
+  us_time=$(TZ="America/Los_Angeles" date "+%H時")
+  local_time=$(date "+%d日(%a) [${us_time}] %H時%M分%S秒")
+  echo "$dzen_number $local_time"
   dzen_number+=1
 }
 
