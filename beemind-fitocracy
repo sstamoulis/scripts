@@ -48,7 +48,7 @@ if !(logged_in.body.include? "error")
   
   # send to beeminder
   config     = YAML.load File.open("#{Dir.home}/.beeminderrc")
-  bee        = Beeminder::User.new config["account"], config["token"]
+  bee        = Beeminder::User.new config["token"]
   fit_goal   = bee.goal opts[:goal]
   last_score = fit_goal.datapoints.max_by{|x| x.value}.value.to_i
 
