@@ -14,6 +14,7 @@ opts = Trollop::options do
   opt :username, "username", :type => String
   opt :password, "password", :type => String
   opt :goal, "goal", :type => String, :default => "fitocracy"
+  opt :verbose
 end
 
 # crawl site
@@ -38,6 +39,8 @@ logged_in = agent.post('https://www.fitocracy.com/accounts/login/', {
                        })
 
 if !(logged_in.body.include? "error")
+  puts "logged in..." if opts[:verbose]
+  
   # get points
   profile_url = "https://www.fitocracy.com/profile/#{opts[:username]}"
   profile_page = agent.get profile_url
@@ -45,6 +48,8 @@ if !(logged_in.body.include? "error")
   li = profile_page.search("li#stat-points").first
 
   score = Integer(li.content.split.first.gsub(",", ""))
+
+  puts "score: #{score}" if opts[:verbose]
   
   # send to beeminder
   config     = YAML.load File.open("#{Dir.home}/.beeminderrc")
@@ -52,9 +57,15 @@ if !(logged_in.body.include? "error")
   fit_goal   = bee.goal opts[:goal]
   last_score = fit_goal.datapoints.max_by{|x| x.value}.value.to_i
 
+  puts "last score: #{last_score}" if opts[:verbose]
+  
   if score > last_score
     bee.send opts[:goal], score, "automatic update (+#{score - last_score})"
+    puts "score send." if opts[:verbose]
   end
+else
+  puts "failed to log in:" if opts[:verbose]
+  puts logged_in.body
 end
 
 
