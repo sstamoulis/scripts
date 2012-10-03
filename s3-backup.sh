@@ -4,6 +4,12 @@
 
 S3=s3://backup.muflax.com     
 
+# prepare
+echo "Preparing ~/spoiler..."
+cd $HOME/spoiler
+git gc
+git prune
+
 echo "Compressing ~/spoiler..."
 mkdir -p $HOME/spoiler-backup
 cd $HOME/spoiler-backup
