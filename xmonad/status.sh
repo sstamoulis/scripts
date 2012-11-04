@@ -32,7 +32,7 @@ status() {
   dzen_number+=1
 
   # laptop specific
-  if [[ $hostname == "nyarlathotep" ]] then
+  if [[ $hostname == "nyarlathotep" || $hostname == "typhus" ]] then
     # battery status
     echo "$dzen_number B ${$(acpi)[(w)3,-1]}"
     dzen_number+=1

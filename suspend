@@ -32,8 +32,8 @@ sync
 # daemons
 /etc/init.d/fcron stop
 
-# moduler
-if [[ $(hostname) == "nyarlathotep" ]] then
+# modules
+if [[ $(hostname) == "nyarlathotep" || $(hostname) == "typhus" ]] then
   modprobe -r iwl3945 || exit 1
 fi
 

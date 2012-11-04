@@ -23,6 +23,10 @@ case $HOSTNAME in
     WIDTH="1440"
     HEIGHT="900"
     ;;
+  typhus)
+    WIDTH="1200"
+    HEIGHT="900"
+    ;;
   *)
     echo "unknown host: aborting"
     exit 1
