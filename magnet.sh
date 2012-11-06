@@ -3,4 +3,4 @@
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
 # open magnet links
-/usr/bin/transmission-qt "$1"
+DISPLAY=:0.0 /usr/bin/transmission-qt "$1" &!
