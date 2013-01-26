@@ -8,7 +8,7 @@ source ~/.zsh/env.sh
 source ~/.zsh/path.sh
 
 DAY=$(date +'%Y-%m-%d')
-DIR="/home/amon/spoiler/archive/twitter/$DAY/"
+DIR="/home/amon/archive/twitter/$DAY/"
 
 mkdir -p $DIR
 
