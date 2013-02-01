@@ -1,8 +1,0 @@
-#!/bin/zsh
-
-emerge -kauD --changed-use --binpkg-respect-use y --with-bdeps y world
-cfg-update -u
-revdep-rebuild -i
-perl-cleaner --all
-haskell-updater
-eclean -d -t2w distfiles; sudo eclean -d -t2w packages"
