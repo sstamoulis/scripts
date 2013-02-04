@@ -68,7 +68,7 @@ watch_fumetrap() {
   if [[ $mod_time -gt $last_mod_time ]]; then
     last_mod_time=$mod_time
     ti display all --start 'today 0:00' -f status
-  elif [[ $now -gt $(( $last_mod_time + 600 )) ]]; then
+  elif [[ $now -gt $(( $last_mod_time + 60 )) ]]; then
     last_mod_time=$now
     ti display all --start 'today 0:00' -f status
   fi
