@@ -6,9 +6,9 @@
 
 # global variables
 hostname=$(hostname)
-fumetrap_db=$(ruby -ryaml << EOF
-  c = YAML.load_file(File.join(ENV['HOME'], '.fumetrap.yml'))
-  puts c['database_file']
+fume_db=$(ruby -ryaml << EOF
+  c = YAML.load_file(File.join(ENV['HOME'], '.fumerc'))
+  puts File.join(c['fume_dir'], 'fume_db.yaml')
 EOF
 )
 export last_mod_time=0
@@ -60,17 +60,17 @@ status() {
   dzen_number+=1
 }
 
-# watches fumetrap database for changes to prevent unnecessary execs
-watch_fumetrap() {
-  mod_time=$(stat -c "%Y" $fumetrap_db)
+# watches fume database for changes to prevent unnecessary execs
+watch_fume() {
+  mod_time=$(stat -c "%Y" $fume_db)
   now=$(date "+%s")
   
   if [[ $mod_time -gt $last_mod_time ]]; then
     last_mod_time=$mod_time
-    ti display all --start 'today 0:00' -f status
+    ti display --start 'today 0:00' -f status
   elif [[ $now -gt $(( $last_mod_time + 60 )) ]]; then
     last_mod_time=$now
-    ti display all --start 'today 0:00' -f status
+    ti display --start 'today 0:00' -f status
   fi
 }
 
@@ -78,7 +78,7 @@ if [[ $1 != "debug" ]]; then
   while true
   do 
     { status; sleep 0.9s } &
-    watch_fumetrap # note: this can't be &-ed as it writes a global variable
+    watch_fume # note: this can't be &-ed as it writes a global variable
     wait
   done | dmplex
 else
