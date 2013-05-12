@@ -31,7 +31,7 @@ my $source = $tab{$path};
 # no /dev/mapper at the beginning, just pass this to umount
 exec @ARGV unless ($source =~ m,^/dev/mapper/,);
 
-say "umounting $path… (source: $source)";
+say "umounting $path... (source: $source)";
 
 my $pid = fork;
 die "Could not fork: $!" unless defined($pid);
@@ -70,5 +70,5 @@ while ($umount_running) {
 }
 close($vmstat);
 
-# prefix sudo if we’re not root, run cryptsetup to close the crypto device
+# prefix sudo if we're not root, run cryptsetup to close the crypto device
 exec (($< != 0 ? 'sudo' : ()), 'cryptsetup', 'luksClose', $source);
