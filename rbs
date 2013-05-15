@@ -27,18 +27,17 @@ function backup() {
     exit 1
   fi
 
+  # begin writing to drive
+  UNLOCK
+  
   # create lockfile
-  UNLOCK
-    rm -f $BACKUP_DIR/rbs.lock
-    echo $$ > $BACKUP_DIR/rbs.lock
-  LOCK
-
-  UNLOCK
-    echo "saving daily pigs..."
-    mv /home/amon/pigs/daily/* $BACKUP_DIR/daily_pigs/
-    echo "pigs saved."
-  LOCK
-
+  rm -f $BACKUP_DIR/rbs.lock
+  echo $$ > $BACKUP_DIR/rbs.lock
+  
+  echo "saving daily pigs..."
+  mv /home/amon/pigs/daily/* $BACKUP_DIR/daily_pigs/
+  echo "pigs saved."
+  
   for origin in $TARGETS
   do
     if [[ $origin != "/" ]] then
@@ -86,32 +85,26 @@ function backup() {
 RUBY)
     do
       echo "deleting $cutoff_dir"
-      UNLOCK
-        rm -rf --one-file-system $cutoff_dir
-      LOCK
+      rm -rf --one-file-system $cutoff_dir
     done
 
     echo "starting backup..."
     date=$(date $DATE_FORMAT)
-    UNLOCK
-      mkdir -p $target_dir
+    mkdir -p $target_dir
 
-      rsync -xaP --delete --delete-excluded \
-        --link-dest=$current \
-        $origin/ $target_dir/${date}_incomplete \
-        \
-        && mv $target_dir/${date}_incomplete $target_dir/$date \
-        && rm -f $current \
-        && ln -s $target_dir/$date $current
-    LOCK
+    rsync -xaP --delete --delete-excluded \
+      --link-dest=$current \
+      $origin/ $target_dir/${date}_incomplete \
+      \
+      && mv $target_dir/${date}_incomplete $target_dir/$date \
+      && rm -f $current \
+      && ln -s $target_dir/$date $current
     echo "backup complete at $(date)"
   done
     
   # remove lockfile
-  UNLOCK
-    rm -f $BACKUP_DIR/rbs.lock
-  LOCK
+  rm -f $BACKUP_DIR/rbs.lock
 
-  # just to be sure
+  # lock drive again
   LOCK
 }
