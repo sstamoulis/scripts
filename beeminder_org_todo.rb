@@ -3,7 +3,6 @@
 # Copyright muflax <mail@muflax.com>, 2013
 # License: GNU GPL 3 <http://www.gnu.org/copyleft/gpl.html>
 
-require "awesome_print"
 require "beeminder"
 require "highline/import"
 require "org-ruby"
@@ -15,6 +14,7 @@ opts = Trollop::options do
   opt :force,   "don't ask for confirmation, just update"
 end
 
+# where to get the todos from
 goal_dir = File.expand_path "~/projects/" 
 goals = {
          :mavothi => "languages/mavothi.org"
@@ -31,9 +31,11 @@ class Orgmode::Headline
   end
 end
 
+# beeminder account
 config = YAML.load File.open("#{Dir.home}/.beeminderrc")
 bee    = Beeminder::User.new config["token"]
 
+# check all goals and update beeminder goal if necessary
 goals.each do |goal, file|
   bee_goal = bee.goal goal.to_s
   cur_goal = bee_goal.curval.to_i
