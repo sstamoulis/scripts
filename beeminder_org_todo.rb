@@ -41,12 +41,12 @@ goals.each do |goal, file|
   cur_goal = bee_goal.curval.to_i
   tot_goal = bee_goal.goalval.to_i
   
-  org  = Orgmode::Parser.new(File.open(File.join(goal_dir, file)).read)
-  todo = org.headlines.count(&:todo?)
-  done = org.headlines.count(&:done?)
+  org   = Orgmode::Parser.new(File.open(File.join(goal_dir, file)).read)
+  todo  = org.headlines.count(&:todo?)
+  done  = org.headlines.count(&:done?)
   total = todo + done
   
-  puts "#{goal} has #{todo} open tasks out of #{total} total."
+  puts "#{goal} has #{todo} open tasks, and done #{done} out of #{total} total."
   puts "Current Beeminder state is #{cur_goal} of #{tot_goal}."
 
   if tot_goal != total
@@ -56,10 +56,11 @@ goals.each do |goal, file|
     end
   end
 
-  if cur_goal != todo
-    if opts[:force] or agree "Send diff of #{todo - cur_goal} as datapoint?"
+  if cur_goal != done
+    diff = done - cur_goal
+    if opts[:force] or agree "Send diff of #{diff} as datapoint?"
       # send diff
-      dp = Beeminder::Datapoint.new :value => (todo - cur_goal), :comment => "todo diff (#{todo} total)" 
+      dp = Beeminder::Datapoint.new :value => diff, :comment => "todo diff (#{todo} total)" 
       bee_goal.add dp unless opts[:pretend]
     end
   end
