@@ -17,7 +17,9 @@ end
 # where to get the todos from
 goal_dir = File.expand_path "~/projects/" 
 goals = {
-         :mavothi => "languages/mavothi.org"
+         :mavothi       => "languages/mavothi.org",
+         :studienarbeit => "job/hiwi.org",
+         :steno         => "steno/steno.org",
         }
 
 # simple handling of todos
@@ -32,11 +34,14 @@ class Orgmode::Headline
 end
 
 # beeminder account
+puts "logging into beeminder..."
 config = YAML.load File.open("#{Dir.home}/.beeminderrc")
 bee    = Beeminder::User.new config["token"]
 
 # check all goals and update beeminder goal if necessary
 goals.each do |goal, file|
+  puts
+  puts "getting data for #{goal}..."
   bee_goal = bee.goal goal.to_s
   cur_goal = bee_goal.curval.to_i
   tot_goal = bee_goal.goalval.to_i
