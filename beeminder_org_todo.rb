@@ -60,7 +60,7 @@ goals.each do |goal, file|
 
   if tot_goal != total
     if (opts[:force] or
-        (opts[:auto] and total > tot_goal) or
+        (opts[:auto] and total > tot_goal and (DateTime.now < bee_goal.losedate)) or
         (not opts[:auto] and agree "Update goal total from #{tot_goal} to #{total}?"))
       
       puts "updating road to #{total}..."
