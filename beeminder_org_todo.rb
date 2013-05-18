@@ -20,6 +20,7 @@ goals = {
          :mavothi       => "languages/mavothi.org",
          :studienarbeit => "job/hiwi.org",
          :steno         => "steno/steno.org",
+         :music         => "music/music.org",
         }
 
 # simple handling of todos
