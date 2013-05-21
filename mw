@@ -54,15 +54,7 @@ begin
 
     
     opts.on("-y", "--youtube", "youtube mode") do |y|
-      [
-       "/home/amon/youtube",
-       "/home/amon/テレビ/lessons"
-      ].each do |dir|
-        if pwd.include? dir
-          options[:speed] = 1.4
-          break
-        end
-      end
+      options[:speed] = 1.4
     end
   end.parse!
 rescue OptionParser::InvalidOption => e
