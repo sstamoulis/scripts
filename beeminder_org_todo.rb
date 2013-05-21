@@ -75,7 +75,7 @@ goals.each do |goal, file|
         (not opts[:auto] and agree "Send diff of #{diff} as datapoint?"))
       
       puts "sending diff of #{diff}..."
-      dp = Beeminder::Datapoint.new :value => diff, :comment => "todo diff (#{todo} total)" 
+      dp = Beeminder::Datapoint.new :value => diff, :comment => "todo diff (#{done} total)" 
       bee_goal.add dp unless opts[:pretend]
     end
   end
