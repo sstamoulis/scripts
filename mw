@@ -73,10 +73,10 @@ when "azathoth"
   case options[:position]
   when :left
     cmd << "-xineramascreen 0"
-    system "nvidia-settings -a XVideoSyncToDisplay=DFP-0 >/dev/null"
+    system "nvidia-settings -a XVideoSyncToDisplay=DFP-1 >/dev/null"
   when :right
     cmd << "-xineramascreen 1"
-    system "nvidia-settings -a XVideoSyncToDisplay=DFP-1 >/dev/null"
+    system "nvidia-settings -a XVideoSyncToDisplay=DFP-0 >/dev/null"
   end
 end
 
