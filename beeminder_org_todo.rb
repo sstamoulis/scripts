@@ -21,6 +21,9 @@ end
 goal_dir = File.expand_path "~/projects/" 
 goals = {
          :mavothi       => "languages/mavothi.org",
+         :grammar       => ["languages/japanese.org",
+                            "languages/french.org",
+                            "languages/latin.org"],
          :studienarbeit => "job/hiwi.org",
          :steno         => "steno/steno.org",
          :music         => "music/music.org",
@@ -43,16 +46,20 @@ config = YAML.load File.open("#{Dir.home}/.beeminderrc")
 bee    = Beeminder::User.new config["token"]
 
 # check all goals and update beeminder goal if necessary
-goals.each do |goal, file|
+goals.each do |goal, files|
   puts
   puts "getting data for #{goal}..."
   bee_goal = bee.goal goal.to_s
   cur_goal = bee_goal.curval.to_i
   tot_goal = bee_goal.goalval.to_i
-  
-  org   = Orgmode::Parser.new(File.open(File.join(goal_dir, file)).read)
-  todo  = org.headlines.count(&:todo?)
-  done  = org.headlines.count(&:done?)
+
+  files = [*files]
+  todo  = done = 0
+  files.each do |file|
+    org   = Orgmode::Parser.new(File.open(File.join(goal_dir, file)).read)
+    todo += org.headlines.count(&:todo?)
+    done += org.headlines.count(&:done?)
+  end
   total = todo + done
 
   puts "#{goal} has #{todo} open tasks, and done #{done} out of #{total} total."
