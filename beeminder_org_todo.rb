@@ -42,14 +42,15 @@ end
 
 # beeminder account
 puts "logging into beeminder..."
-config = YAML.load File.open("#{Dir.home}/.beeminderrc")
-bee    = Beeminder::User.new config["token"]
+config    = YAML.load File.open("#{Dir.home}/.beeminderrc")
+bee       = Beeminder::User.new config["token"]
+bee_goals = bee.goals
 
 # check all goals and update beeminder goal if necessary
 goals.each do |goal, files|
   puts
   puts "getting data for #{goal}..."
-  bee_goal = bee.goal goal.to_s
+  bee_goal = bee_goals.find {|g| g.slug == goal.to_s}
   cur_goal = bee_goal.curval.to_i
   tot_goal = bee_goal.goalval.to_i
 
