@@ -32,11 +32,11 @@ goals = {
 # simple handling of todos
 class Orgmode::Headline
   def todo?
-    ["TODO", "WAITING"].include? self.keyword
+    ["TODO"].include? self.keyword
   end
 
   def done?
-    ["DONE"].include? self.keyword
+    ["DONE", "WAITING"].include? self.keyword
   end
 end
 
