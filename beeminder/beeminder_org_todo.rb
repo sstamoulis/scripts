@@ -31,6 +31,13 @@ goals = {
 
 # simple handling of todos
 class Orgmode::Headline
+  # also valid
+  Keywords << "WAITING"
+
+  # need to regenerate the internal regex
+  remove_const :KeywordsRegexp
+  KeywordsRegexp = Regexp.new("^(#{Keywords.join('|')})\$")
+
   def todo?
     ["TODO"].include? self.keyword
   end
