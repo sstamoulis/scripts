@@ -79,7 +79,14 @@ goals.each do |goal, files|
         (not opts[:auto] and agree "Update goal total from #{tot_goal} to #{total}?"))
       
       puts "updating road to #{total}..."
-      bee_goal.dial_road "goalval" => total, "rate" => bee_goal.rate unless opts[:pretend]
+      unless opts[:pretend]
+        if bee_goal.rate.nil?
+          # rate or date are specified, but we don't know which
+          bee_goal.dial_road "goalval" => total, "goaldate" => bee_goal.goaldate
+        else
+          bee_goal.dial_road "goalval" => total, "rate" => bee_goal.rate
+        end
+      end
     end
   end
 
