@@ -12,6 +12,12 @@ end
 
 weight = ARGV.shift.to_f 
 
+# sanity check
+unless weight.between? 50, 100
+  puts "invalid weight: #{weight}"
+  exit 1
+end
+
 puts "connecting to beeminder..."
 config = YAML.load File.open("#{Dir.home}/.beeminderrc")
 bee    = Beeminder::User.new config["token"]
