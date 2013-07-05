@@ -25,5 +25,5 @@ bee    = Beeminder::User.new config["token"]
 puts "sending weight..."
 bee.send "weight",   weight
 
-puts "updating weighhing..."
+puts "updating weighing..."
 bee.send "weighing", 1
