@@ -16,7 +16,7 @@ else
 fi
 
 # check if backup process is running
-source $HOME/in/scripts/rbs
+source $HOME/src/scripts/rbs
 if [[ $(is_locked) == "locked" ]]; then
   echo -n "backup is in process right now, waiting a bit"
 fi

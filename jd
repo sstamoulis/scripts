@@ -1,5 +1,5 @@
 #!/bin/bash
-JDDIR=~/out/jdownloader
+JDDIR=~/local/opt/jdownloader
 JDINSTALLER=http://update0.jdownloader.org/jdupdate.jar
 
 if [ -e $JDDIR ]; then
