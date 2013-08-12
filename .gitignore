@@ -2,6 +2,5 @@
 *.swp
 
 # login data
-fitocracy-beemind-cron.sh
-google_web_history-cron.sh
+*-cron.sh
 glacier-backup.sh

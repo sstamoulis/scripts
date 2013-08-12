@@ -24,7 +24,7 @@ goals = {
          :grammar       => ["languages/japanese.org",
                             "languages/french.org",
                             "languages/latin.org"],
-         :studienarbeit => "job/hiwi.org",
+         # :studienarbeit => "job/hiwi.org",
          :steno         => "steno/steno.org",
          :music         => "music/music.org",
         }
