@@ -19,7 +19,7 @@ def main(args):
                 clean_line = re.sub("{.*?}", "", line)
                 entries = clean_line[10:].strip().split(",")
                 srtf.write("%s --> %s\n" % (entries[1].replace(".",",")+"0", entries[2].replace(".",",")+"0"))
-                srtf.write("".join(entries[9:])+"\n")
+                srtf.write(re.sub(r'(?i)\\n','\n',"".join(entries[9:]))+"\n")
                 srtf.write("\n")
 
         f.close()
